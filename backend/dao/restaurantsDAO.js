@@ -8,10 +8,12 @@ export default class RestaurantsDAO {
       return
     }
     try {
-      restaurants = await conn.db(process.env.RESTREVIEWS_NS).collection("restaurants")
+      restaurants = await conn
+        .db(process.env.RESTREVIEWS_NS)
+        .collection("restaurants")
     } catch (e) {
       console.error(
-        `Unable to establish a collection handle in restaurantsDAO: ${e}`,
+        `Unable to establish a collection handle in restaurantsDAO: ${e}`
       )
     }
   }
@@ -26,23 +28,24 @@ export default class RestaurantsDAO {
       if ("name" in filters) {
         query = { $text: { $search: filters["name"] } }
       } else if ("cuisine" in filters) {
-        query = { "cuisine": { $eq: filters["cuisine"] } }
+        query = { cuisine: { $eq: filters["cuisine"] } }
       } else if ("zipcode" in filters) {
         query = { "address.zipcode": { $eq: filters["zipcode"] } }
       }
     }
 
     let cursor
-    
+
     try {
-      cursor = await restaurants
-        .find(query)
+      cursor = await restaurants.find(query)
     } catch (e) {
       console.error(`Unable to issue find command, ${e}`)
       return { restaurantsList: [], totalNumRestaurants: 0 }
     }
 
-    const displayCursor = cursor.limit(restaurantsPerPage).skip(restaurantsPerPage * page)
+    const displayCursor = cursor
+      .limit(restaurantsPerPage)
+      .skip(restaurantsPerPage * page)
 
     try {
       const restaurantsList = await displayCursor.toArray()
@@ -51,7 +54,7 @@ export default class RestaurantsDAO {
       return { restaurantsList, totalNumRestaurants }
     } catch (e) {
       console.error(
-        `Unable to convert cursor to array or problem counting documents, ${e}`,
+        `Unable to convert cursor to array or problem counting documents, ${e}`
       )
       return { restaurantsList: [], totalNumRestaurants: 0 }
     }
@@ -60,39 +63,39 @@ export default class RestaurantsDAO {
     try {
       const pipeline = [
         {
-            $match: {
-                _id: new ObjectId(id),
-            },
+          $match: {
+            _id: new ObjectId(id),
+          },
         },
+        {
+          $lookup: {
+            from: "reviews",
+            let: {
+              id: "$_id",
+            },
+            pipeline: [
               {
-                  $lookup: {
-                      from: "reviews",
-                      let: {
-                          id: "$_id",
-                      },
-                      pipeline: [
-                          {
-                              $match: {
-                                  $expr: {
-                                      $eq: ["$restaurant_id", "$$id"],
-                                  },
-                              },
-                          },
-                          {
-                              $sort: {
-                                  date: -1,
-                              },
-                          },
-                      ],
-                      as: "reviews",
+                $match: {
+                  $expr: {
+                    $eq: ["$restaurant_id", "$$id"],
                   },
+                },
               },
               {
-                  $addFields: {
-                      reviews: "$reviews",
-                  },
+                $sort: {
+                  date: -1,
+                },
               },
-          ]
+            ],
+            as: "reviews",
+          },
+        },
+        {
+          $addFields: {
+            reviews: "$reviews",
+          },
+        },
+      ]
       return await restaurants.aggregate(pipeline).next()
     } catch (e) {
       console.error(`Something went wrong in getRestaurantByID: ${e}`)
@@ -111,6 +114,3 @@ export default class RestaurantsDAO {
     }
   }
 }
-
-
-

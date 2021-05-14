@@ -7,7 +7,7 @@ export default class ReviewsController {
       const review = req.body.text
       const userInfo = {
         name: req.body.name,
-        _id: req.body.user_id
+        _id: req.body.user_id,
       }
       const date = new Date()
 
@@ -15,7 +15,7 @@ export default class ReviewsController {
         restaurantId,
         userInfo,
         review,
-        date,
+        date
       )
       res.json({ status: "success" })
     } catch (e) {
@@ -33,7 +33,7 @@ export default class ReviewsController {
         reviewId,
         req.body.user_id,
         text,
-        date,
+        date
       )
 
       var { error } = reviewResponse
@@ -43,7 +43,7 @@ export default class ReviewsController {
 
       if (reviewResponse.modifiedCount === 0) {
         throw new Error(
-          "unable to update review - user may not be original poster",
+          "unable to update review - user may not be original poster"
         )
       }
 
@@ -58,14 +58,10 @@ export default class ReviewsController {
       const reviewId = req.query.id
       const userId = req.body.user_id
       console.log(reviewId)
-      const reviewResponse = await ReviewsDAO.deleteReview(
-        reviewId,
-        userId,
-      )
+      const reviewResponse = await ReviewsDAO.deleteReview(reviewId, userId)
       res.json({ status: "success" })
     } catch (e) {
       res.status(500).json({ error: e.message })
     }
   }
-
 }

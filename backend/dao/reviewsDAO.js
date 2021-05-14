@@ -17,11 +17,13 @@ export default class ReviewsDAO {
 
   static async addReview(restaurantId, user, review, date) {
     try {
-      const reviewDoc = { name: user.name,
-          user_id: user._id,
-          date: date,
-          text: review,
-          restaurant_id: ObjectId(restaurantId), }
+      const reviewDoc = {
+        name: user.name,
+        user_id: user._id,
+        date: date,
+        text: review,
+        restaurant_id: ObjectId(restaurantId),
+      }
 
       return await reviews.insertOne(reviewDoc)
     } catch (e) {
@@ -33,8 +35,8 @@ export default class ReviewsDAO {
   static async updateReview(reviewId, userId, text, date) {
     try {
       const updateResponse = await reviews.updateOne(
-        { user_id: userId, _id: ObjectId(reviewId)},
-        { $set: { text: text, date: date  } },
+        { user_id: userId, _id: ObjectId(reviewId) },
+        { $set: { text: text, date: date } }
       )
 
       return updateResponse
@@ -45,7 +47,6 @@ export default class ReviewsDAO {
   }
 
   static async deleteReview(reviewId, userId) {
-
     try {
       const deleteResponse = await reviews.deleteOne({
         _id: ObjectId(reviewId),
@@ -58,5 +59,4 @@ export default class ReviewsDAO {
       return { error: e }
     }
   }
-
 }
