@@ -3,6 +3,8 @@ import state from "./dao/index.js"
 
 const port = process.env.PORT || 8000
 
-server(state).listen(port, () => {
-  console.log(`listening on port ${port}`)
+server(state).then( app => {
+  app.listen(port, () => {
+    console.log(`listening on port ${port}`)
+  })
 })
