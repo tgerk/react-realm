@@ -1,8 +1,5 @@
-import dotenv from "dotenv"
-dotenv.config()
-
-import server from "./app.js"
-import state from "./state.js"
+import server from "./api/index.js"
+import state from "./dao/index.js"
 
 const port = process.env.PORT || 8000
 

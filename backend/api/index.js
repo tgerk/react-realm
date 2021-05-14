@@ -1,7 +1,7 @@
 import express from "express"
 import cors from "cors"
 
-import restaurants from "./api/restaurants.route.js"
+import restaurants from "./restaurants.route.js"
 
 export default (state) => {
   const app = express()
