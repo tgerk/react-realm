@@ -1,21 +1,11 @@
-import express from "express"
-import cors from "cors"
+import dotenv from "dotenv"
+dotenv.config()
 
-import restaurants from "./api/restaurants.route.js"
+import server from "./app.js"
+import state from "./state.js"
 
-export default (state) => {
-  const app = express()
+const port = process.env.PORT || 8000
 
-  app.use(cors())
-  app.use(express.json())
-
-  app.set("state", state)
-  app.use("/api/v1/restaurants", restaurants)
-  app.use("*", (req, res) => res.status(404).json({ error: "not found" }))
-  app.use((req, res, next, e) => {
-    console.log(`api, ${e}`)
-    res.status(500).json({ error: e.message })
-  })
-
-  return app
-}
+server(state).listen(port, () => {
+  console.log(`listening on port ${port}`)
+})
