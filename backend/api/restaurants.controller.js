@@ -1,56 +1,63 @@
-import RestaurantsDAO from "../dao/restaurantsDAO.js"
+export async function apiGetRestaurants(req, res, next) {
+  const { restaurants } = req.app.get("state")
 
-export default class RestaurantsController {
-  static async apiGetRestaurants(req, res, next) {
-    const restaurantsPerPage = req.query.restaurantsPerPage ? parseInt(req.query.restaurantsPerPage, 10) : 20
-    const page = req.query.page ? parseInt(req.query.page, 10) : 0
+  const restaurantsPerPage = req.query.restaurantsPerPage
+    ? parseInt(req.query.restaurantsPerPage, 10)
+    : 20
+  const page = req.query.page ? parseInt(req.query.page, 10) : 0
 
-    let filters = {}
-    if (req.query.cuisine) {
-      filters.cuisine = req.query.cuisine
-    } else if (req.query.zipcode) {
-      filters.zipcode = req.query.zipcode
-    } else if (req.query.name) {
-      filters.name = req.query.name
-    }
-
-    const { restaurantsList, totalNumRestaurants } = await RestaurantsDAO.getRestaurants({
-      filters,
-      page,
-      restaurantsPerPage,
-    })
-
-    let response = {
-      restaurants: restaurantsList,
-      page: page,
-      filters: filters,
-      entries_per_page: restaurantsPerPage,
-      total_results: totalNumRestaurants,
-    }
-    res.json(response)
-  }
-  static async apiGetRestaurantById(req, res, next) {
-    try {
-      let id = req.params.id || {}
-      let restaurant = await RestaurantsDAO.getRestaurantByID(id)
-      if (!restaurant) {
-        res.status(404).json({ error: "Not found" })
-        return
-      }
-      res.json(restaurant)
-    } catch (e) {
-      console.log(`api, ${e}`)
-      res.status(500).json({ error: e })
-    }
+  let filters = {}
+  if (req.query.cuisine) {
+    filters.cuisine = req.query.cuisine
+  } else if (req.query.zipcode) {
+    filters.zipcode = req.query.zipcode
+  } else if (req.query.name) {
+    filters.name = req.query.name
   }
 
-  static async apiGetRestaurantCuisines(req, res, next) {
-    try {
-      let cuisines = await RestaurantsDAO.getCuisines()
-      res.json(cuisines)
-    } catch (e) {
-      console.log(`api, ${e}`)
-      res.status(500).json({ error: e })
-    }
+  const {
+    restaurantsList,
+    totalNumRestaurants,
+  } = await restaurants.getRestaurants({
+    filters,
+    page,
+    restaurantsPerPage,
+  })
+
+  let response = {
+    restaurants: restaurantsList,
+    page: page,
+    filters: filters,
+    entries_per_page: restaurantsPerPage,
+    entries_this_page: restaurantsList.length,
+    total_results: totalNumRestaurants,
   }
+
+  // TODO: how does Realm implement cursors?  and next/prev pagination??
+  if (page > 0) response.prev = `${req.baseUrl}${req.path}?page=${page - 1}`
+  if (page * restaurantsPerPage < totalNumRestaurants - restaurantsPerPage) {
+    response.next = `${req.baseUrl}${req.path}?page=${page + 1}`
+  }
+
+  res.json(response)
+}
+
+export async function apiGetRestaurantById(req, res, next) {
+  const { restaurants } = req.app.get("state")
+
+  let id = req.params.id || {}
+  let restaurant = await restaurants.getRestaurantByID(id)
+  if (!restaurant) {
+    res.status(404).json({ error: "Not found" })
+    return
+  }
+
+  res.json(restaurant)
+}
+
+export async function apiGetRestaurantCuisines(req, res, next) {
+  const { restaurants } = req.app.get("state")
+
+  let cuisines = await restaurants.getCuisines()
+  res.json(cuisines)
 }

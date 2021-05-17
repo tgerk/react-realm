@@ -1,17 +1,25 @@
 import express from "express"
-import RestaurantsCtrl from "./restaurants.controller.js"
-import ReviewsCtrl from "./reviews.controller.js"
+import {
+  apiGetRestaurants,
+  apiGetRestaurantById,
+  apiGetRestaurantCuisines,
+} from "./restaurants.controller.js"
+import {
+  apiPostReview,
+  apiUpdateReview,
+  apiDeleteReview,
+} from "./reviews.controller.js"
 
 const router = express.Router()
 
-router.route("/").get(RestaurantsCtrl.apiGetRestaurants)
-router.route("/id/:id").get(RestaurantsCtrl.apiGetRestaurantById)
-router.route("/cuisines").get(RestaurantsCtrl.apiGetRestaurantCuisines)
+router.route("/").get(apiGetRestaurants)
+router.route("/id/:id").get(apiGetRestaurantById)
+router.route("/cuisines").get(apiGetRestaurantCuisines)
 
 router
   .route("/review")
-  .post(ReviewsCtrl.apiPostReview)
-  .put(ReviewsCtrl.apiUpdateReview)
-  .delete(ReviewsCtrl.apiDeleteReview)
+  .post(apiPostReview)
+  .put(apiUpdateReview)
+  .delete(apiDeleteReview)
 
 export default router

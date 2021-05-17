@@ -1,13 +1,10 @@
-import express from "express"
-import cors from "cors"
-import restaurants from "./api/restaurants.route.js"
+import server from "./api/index.js"
+import state from "./dao/index.js"
 
-const app = express()
+const port = process.env.PORT || 8000
 
-app.use(cors())
-app.use(express.json())
-
-app.use("/api/v1/restaurants", restaurants)
-app.use("*", (req, res) => res.status(404).json({ error: "not found"}))
-
-export default app
+server(state).then((app) => {
+  app.listen(port, () => {
+    console.log(`listening on port ${port}`)
+  })
+})
