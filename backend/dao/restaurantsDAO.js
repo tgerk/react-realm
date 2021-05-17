@@ -21,6 +21,7 @@ export default async function restaurantsDAOFactory(db) {
         }
       }
 
+      // TODO: implement a proxy for cursor; use an ID for the cursor in next/prev links ...but you know what that's stupid & a great reason to adopt serverless & MongoDB Realm to outsource that plumbing grunt-work
       let cursor
 
       try {

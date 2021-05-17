@@ -29,8 +29,16 @@ export async function apiGetRestaurants(req, res, next) {
     page: page,
     filters: filters,
     entries_per_page: restaurantsPerPage,
+    entries_this_page: restaurantsList.length,
     total_results: totalNumRestaurants,
   }
+
+  // TODO: how does Realm implement cursors?  and next/prev pagination??
+  if (page > 0) response.prev = `${req.baseUrl}${req.path}?page=${page - 1}`
+  if (page * restaurantsPerPage < totalNumRestaurants - restaurantsPerPage) {
+    response.next = `${req.baseUrl}${req.path}?page=${page + 1}`
+  }
+
   res.json(response)
 }
 
