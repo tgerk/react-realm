@@ -1,4 +1,5 @@
 import express from "express"
+import morgan from "morgan"
 import {
   apiGetRestaurants,
   apiGetRestaurantById,
@@ -12,6 +13,7 @@ import {
 
 const router = express.Router()
 
+router.use(morgan("combined"))
 router.route("/").get(apiGetRestaurants)
 router.route("/id/:id").get(apiGetRestaurantById)
 router.route("/cuisines").get(apiGetRestaurantCuisines)

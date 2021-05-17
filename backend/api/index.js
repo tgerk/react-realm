@@ -10,8 +10,6 @@ export default async (state) => {
 
   // REST/JSON middleware:
   app.use((req, res, next) => {
-    console.log(req.is("json"))
-    console.log(req.accepts("json"))
     if ((req.method == "GET" || req.method == "DELETE" || req.is("json")) && req.accepts("json")) {
       next()
       return
