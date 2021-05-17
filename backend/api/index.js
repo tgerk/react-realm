@@ -1,7 +1,7 @@
 import express from "express"
 import cors from "cors"
 
-import restaurants from "./restaurants.route.js"
+import routes from "./restaurants.route.js"
 
 export default async (state) => {
   const app = express()
@@ -10,7 +10,7 @@ export default async (state) => {
   app.use(express.json())
 
   app.set("state", await state)
-  app.use("/api/v1/restaurants", restaurants)
+  app.use("/api/v1/restaurants", routes)
   app.use("*", (req, res) => res.status(404).json({ error: "not found" }))
   app.use((req, res, next, e) => {
     console.log(`api, ${e}`)
