@@ -7,18 +7,10 @@ import Restaurant from "./restaurant";
 import Review from "./review";
 import Login from "./login";
 
+//TODO: use useReducer/useContext for user
 export default function App() {
 
-  //TODO: use useReducer/useContext for user
   const [user, setUser] = React.useState(null);
-
-  async function login(user = null) {
-    setUser(user);
-  }
-
-  async function logout() {
-    setUser(null)
-  }
 
   return (
     <div>
@@ -34,7 +26,7 @@ export default function App() {
           </li>
           <li className="nav-item" >
             {user ? (
-              <a onClick={logout} className="nav-link" style={{ cursor: 'pointer' }}>
+              <a onClick={() => setUser(null)} className="nav-link" style={{ cursor: 'pointer' }}>
                 Logout {user.name}
               </a>
             ) : (
@@ -54,7 +46,7 @@ export default function App() {
           <Route
             path="/login"
             render={(props) => (
-              <Login {...props} onLogin={login} currentUser={user} />
+              <Login {...props} onLogin={setUser} currentUser={user} />
             )}
           />
 

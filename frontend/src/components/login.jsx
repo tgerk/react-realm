@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 
+// TODO: useContext for user, useReducer for onLogin
 export default function Login({ onLogin, currentUser, history }) {
 
-  // TODO: useContext for user
   const [user, setUser] = useState(currentUser || {});
   const { name: userName, id: userId } = user;
 
@@ -10,7 +10,7 @@ export default function Login({ onLogin, currentUser, history }) {
     setUser({ ...user, [name]: value });
   };
 
-  const login = () => {
+  const doLogin = () => {
     onLogin(user)
     history.push('/');  // from Route props
   }
@@ -44,7 +44,7 @@ export default function Login({ onLogin, currentUser, history }) {
           />
         </div>
 
-        <button onClick={login} className="btn btn-success">
+        <button onClick={doLogin} className="btn btn-success">
           Login
         </button>
       </div>

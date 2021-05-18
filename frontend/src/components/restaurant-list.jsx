@@ -7,11 +7,12 @@ export default function RestaurantList() {
 
   // TODO: useContext to cache pages and searches
   const [restaurants, setRestaurants] = useState([]);
+  const [cuisines, setCuisines] = useState(["All Cuisines"]);
   const [searchName, setSearchName ] = useState("");
   const [searchZip, setSearchZip ] = useState("");
   const [searchCuisine, setSearchCuisine ] = useState("");
-  const [cuisines, setCuisines] = useState(["All Cuisines"]);
 
+  // TODO: use state parameters to always parameterize search-retrieval
   const retrieveRestaurants = () => {
     getRestaurants()
       .then(response => {
@@ -35,10 +36,11 @@ export default function RestaurantList() {
       });
   };
 
+  //TODO: update the page (after a brief delay) on change of name, zip, cuisine & remove the "search" buttons
   useEffect(() => {
     retrieveRestaurants();
     retrieveCuisines();
-  }, []);  //TODO: update the page on change of name, zip, cuisine & remove the "search" buttons;  implement a short delay to limit hammering the server
+  }, []);
 
   const find = (query, by) => {
     searchRestaurants(query, by)
@@ -52,25 +54,25 @@ export default function RestaurantList() {
   };
 
   const findByName = () => {
-    find(searchName, "name");
     setSearchZip("");
     setSearchCuisine("All Cuisines");
+    find(searchName, "name");
   };
   
   const findByZip = () => {
-    find(searchZip, "zipcode")
     setSearchName("");
     setSearchCuisine("All Cuisines");
+    find(searchZip, "zipcode")
   };
   
   const findByCuisine = () => {
+    setSearchName("");
+    setSearchZip("");
     if (searchCuisine === "All Cuisines") {
       retrieveRestaurants();
     } else {
       find(searchCuisine, "cuisine")
     }
-    setSearchName("");
-    setSearchZip("");
   };
 
   return (
@@ -134,8 +136,8 @@ export default function RestaurantList() {
         </div>
       </div>
       <div className="row">
-        {restaurants.map(({ _id: id, name, cuisine, address: { building, street, zipcode }}, index) => {
-          const address = `${building} ${street}, ${zipcode}`;
+        {restaurants.map(({ _id: id, name, cuisine, address}, index) => {
+          address = `${address.building} ${address.street}, ${address.zipcode}`;
           return (
             <div className="col-lg-4 pb-1" key={index}>
               <div className="card">

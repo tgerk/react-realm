@@ -3,16 +3,10 @@ import { Link } from "react-router-dom";
 
 import { get as getRestaurant, deleteReview } from "../services/restaurant";
 
+// TODO: useContext for user
 export default function Restaurant({ id, currentUser }) {
 
-  // TODO: useContext for user
-  const [{ _id: restaurantId, name, cuisine, address: { building, street, zipcode }, reviews }, setRestaurant] = useState({
-    _id: null,
-    name: "",
-    address: {},
-    cuisine: "",
-    reviews: []
-  });
+  const [{ _id: restaurantId, name, cuisine, address, reviews }, setRestaurant] = useState({});
 
   const retrieveRestaurant = id => {
     getRestaurant(id)
@@ -46,7 +40,6 @@ export default function Restaurant({ id, currentUser }) {
       });
   };
 
-  const address = `${building} ${street}, ${zipcode}`;
   return (
     <div>
       {restaurantId ? (
@@ -54,7 +47,7 @@ export default function Restaurant({ id, currentUser }) {
           <h5>{name}</h5>
           <p>
             <strong>Cuisine: </strong>{cuisine}<br />
-            <strong>Address: </strong>{address}
+            <strong>Address: </strong>{`${address.building} ${address.street}, ${address.zipcode}`}
           </p>
           <Link to={`/restaurants/${id}/review`} className="btn btn-primary">
             Add Review
