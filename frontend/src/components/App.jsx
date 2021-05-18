@@ -1,5 +1,6 @@
 import React from "react";
 import { Switch, Route, Link } from "react-router-dom";
+
 import "bootstrap/dist/css/bootstrap.min.css";
 
 import RestaurantList from "./restaurant-list";
@@ -7,13 +8,16 @@ import Restaurant from "./restaurant";
 import Review from "./review";
 import Login from "./login";
 
-//TODO: use useReducer/useContext for user
+import UserContext from "../services/user"
+
 export default function App() {
 
-  const [user, setUser] = React.useState(null);
+  // components access current user through context
+  const userState = React.useState(null),
+    [user, setUser] = userState
 
   return (
-    <div>
+    <UserContext.Provider value={userState}>
       <nav className="navbar navbar-expand navbar-dark bg-dark">
         <a href="/restaurants" className="navbar-brand">
           Restaurant Reviews
@@ -43,20 +47,13 @@ export default function App() {
         <Switch>
           <Route exact path={["/", "/restaurants"]} component={RestaurantList} />
 
-          <Route
-            path="/login"
-            render={(props) => (
-              <Login {...props} onLogin={setUser} currentUser={user} />
-            )}
-          />
+          <Route path="/login" component={Login} />
 
           <Route
             path="/restaurants/:id/review"
             render={(props) => {
-              const id = props.match?.params?.id;
-              const currentReview = props.location?.state?.currentReview
               return (
-                <Review {...props} id={id} currentReview={currentReview || {}} currentUser={user || {}} />
+                <Review {...props} id={props.match.params.id} currentReview={props.location.state?.currentReview || {}} />
               )
             }}
           />
@@ -64,14 +61,13 @@ export default function App() {
           <Route
             path="/restaurants/:id"
             render={(props) => {
-              const id = props.match?.params?.id;
               return (
-                <Restaurant {...props} id={id} currentUser={user || {}} />
+                <Restaurant {...props} id={props.match.params.id} />
               )
             }}
           />
         </Switch>
       </div>
-    </div>
+    </UserContext.Provider>
   );
 }

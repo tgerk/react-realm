@@ -10,21 +10,24 @@ export default async function restaurantsDAOFactory(db) {
       page = 0,
       restaurantsPerPage = 20,
     } = {}) {
-      let query
+      let query = {}
       if (filters) {
         if ("name" in filters) {
-          query = { $text: { $search: filters["name"] } }
-        } else if ("cuisine" in filters) {
-          query = { cuisine: { $eq: filters["cuisine"] } }
-        } else if ("zipcode" in filters) {
-          query = { "address.zipcode": { $eq: filters["zipcode"] } }
+          query["$text"] = { $search: filters["name"] }
+        }
+        if ("cuisine" in filters) {
+          query["cuisine"] = { $eq: filters["cuisine"] }
+        }
+        if ("zipcode" in filters) {
+          query["address.zipcode"] = { $eq: filters["zipcode"] }
         }
       }
 
-      // TODO: implement a proxy for cursor; use an ID for the cursor in next/prev links ...but you know what that's stupid & a great reason to adopt serverless & MongoDB Realm to outsource that plumbing grunt-work
+      // TODO: implement a proxy for cursor; use an ID for the cursor in next/prev links ...but you know what?: that's stupid & a great reason to adopt serverless & MongoDB Realm to outsource that plumbing grunt-work
       let cursor
 
       try {
+        console.debug(query)
         cursor = await restaurants.find(query)
       } catch (e) {
         console.error(`Unable to issue find command, ${e}`)

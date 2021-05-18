@@ -1,13 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { Link } from "react-router-dom";
 
+import UserContext from "../services/user";
 import { createReview, updateReview } from "../services/restaurant";
 
-// TODO: useContext for user
-export default function Review({ id: restaurantId, currentReview: { _id: reviewId, text: initialText }, currentUser }) {
+export default function Review({ id: restaurantId, currentReview: { _id: reviewId, text: initialText } }) {
 
-  const [reviewText, setReview] = useState(initialText);
+  const [currentUser] = useContext(UserContext);
   const [saved, setSaved] = useState(false);
+  const [reviewText, setReview] = useState(initialText);
 
   const saveReview = () => {
     (review => reviewId ? updateReview({ ...review, _id: reviewId }) : createReview(review))({
@@ -25,44 +26,43 @@ export default function Review({ id: restaurantId, currentReview: { _id: reviewI
       });
   }
 
+  if (saved) {
+    return (
+      <div>
+        <h4>Your review has been saved!</h4>
+        <Link to={`/restaurants/${restaurantId}`} className="btn btn-success">
+          Back to Restaurant
+          </Link>
+      </div>
+    )
+  }
+
+  if (!currentUser) {
+    return (
+      <div>
+        Please log in.
+      </div>
+    )
+  }
+
   return (
-    <div>
-      {currentUser ? (
-        <div className="submit-form">
-          {saved ? (
-            <div>
-              <h4>Your review has been saved!</h4>
-              <Link to={`/restaurants/${restaurantId}`} className="btn btn-success">
-                Back to Restaurant
-            </Link>
-            </div>
-          ) : (
-            <div>
-              <div className="form-group">
-                <label htmlFor="description">{reviewId ? "Update" : "Create"} Review</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="text"
-                  required
-                  value={reviewText}
-                  onChange={({ target: { value } }) => setReview(value)}
-                  name="text"
-                />
-              </div>
-              <button onClick={saveReview} className="btn btn-success">
-                Submit
-            </button>
-            </div>
-          )}
-        </div>
-
-      ) : (
-        <div>
-          Please log in.
-        </div>
-      )}
-
+    <div className="submit-form">
+      <div className="form-group">
+        <label htmlFor="description">{reviewId ? "Update" : "Create"} Review</label>
+        <input
+          type="text"
+          className="form-control"
+          id="text"
+          required
+          value={reviewText}
+          onChange={({ target: { value } }) => setReview(value)}
+          name="text"
+        />
+      </div>
+      <button onClick={saveReview} className="btn btn-success">
+        Submit
+      </button>
     </div>
   );
+
 };

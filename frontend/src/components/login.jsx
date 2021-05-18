@@ -1,20 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 
-// TODO: useContext for user, useReducer for onLogin
-export default function Login({ onLogin, currentUser, history }) {
+import UserContext from "../services/user";
 
+export default function Login({ history }) {
+
+  const [currentUser, setCurrentUser] = useContext(UserContext);
   const [user, setUser] = useState(currentUser || {});
   const { name: userName, id: userId } = user;
-
+  
   const updateUser = ({ target: { name, value }}) => {
     setUser({ ...user, [name]: value });
   };
-
+  
   const doLogin = () => {
-    onLogin(user)
+    setCurrentUser(user)
     history.push('/');  // from Route props
   }
-
+  
   return (
     <div className="submit-form">
       <div>
