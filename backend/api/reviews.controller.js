@@ -16,13 +16,13 @@ export async function apiPostReview(req, res, next) {
     date
   )
 
-  res.json({ status: "success" })
+  res.status(201).json({ status: "success" })  // created
 }
 
 export async function apiUpdateReview(req, res, next) {
   const { reviews } = req.app.get("state")
 
-  const reviewId = req.body.review_id
+  const reviewId = req.body._id
   const text = req.body.text
   const date = new Date()
 
@@ -42,7 +42,7 @@ export async function apiUpdateReview(req, res, next) {
     throw new Error("unable to update review - user may not be original poster")
   }
 
-  res.json({ status: "success" })
+  res.status(202).json({ status: "success" })  // accepted
 }
 
 export async function apiDeleteReview(req, res, next) {
@@ -53,5 +53,5 @@ export async function apiDeleteReview(req, res, next) {
 
   const reviewResponse = await reviews.deleteReview(reviewId, userId)
 
-  res.json({ status: "success" })
+  res.status(204).end()  // no content
 }
