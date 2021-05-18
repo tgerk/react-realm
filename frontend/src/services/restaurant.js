@@ -1,34 +1,37 @@
-import http from "../http-common";
+import axios from "axios";
 
-class RestaurantDataService {
-  getAll(page = 0) {
-    return http.get(`?page=${page}`);
+const http = axios.create({
+  baseURL: process.env.REACT_APP_BASE_URL,
+  headers: {
+    "Content-type": "application/json"
   }
+});
 
-  get(id) {
-    return http.get(`/id/${id}`);
-  }
-
-  find(query, by = "name", page = 0) {
-    return http.get(`?${by}=${query}&page=${page}`);
-  } 
-
-  createReview(data) {
-    return http.post("/review", data);
-  }
-
-  updateReview(data) {
-    return http.put("/review", data);
-  }
-
-  deleteReview(id, userId) {
-    return http.delete(`/review?id=${id}`, {data:{user_id: userId}});
-  }
-
-  getCuisines(id) {
-    return http.get(`/cuisines`);
-  }
-
+export function getAll(page = 0) {
+  return http.get(`?page=${page}`);
 }
 
-export default new RestaurantDataService();
+export function get(id) {
+  return http.get(`/id/${id}`);
+}
+
+export function find(query, by = "name", page = 0) {
+  return http.get(`?${by}=${query}&page=${page}`);
+}
+
+export function createReview(data) {
+  return http.post("/review", data);
+}
+
+export function updateReview(data) {
+  console.info(data)
+  return http.put("/review", data);
+}
+
+export function deleteReview(id, userId) {
+  return http.delete(`/review?id=${id}`, { data: { user_id: userId } });
+}
+
+export function getCuisines(id) {
+  return http.get(`/cuisines`);
+}

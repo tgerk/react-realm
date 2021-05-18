@@ -1,22 +1,18 @@
 import React, { useState } from "react";
 
-const Login = props => {
+export default function Login({ onLogin, currentUser, history }) {
 
-  const initialUserState = {
-    name: "",
-    id: "",
-  };
+  // TODO: useContext for user
+  const [user, setUser] = useState(currentUser || {});
+  const { name: userName, id: userId } = user;
 
-  const [user, setUser] = useState(initialUserState);
-
-  const handleInputChange = event => {
-    const { name, value } = event.target;
+  const updateUser = ({ target: { name, value }}) => {
     setUser({ ...user, [name]: value });
   };
 
   const login = () => {
-    props.login(user)
-    props.history.push('/');
+    onLogin(user)
+    history.push('/');  // from Route props
   }
 
   return (
@@ -29,8 +25,8 @@ const Login = props => {
             className="form-control"
             id="name"
             required
-            value={user.name}
-            onChange={handleInputChange}
+            value={userName}
+            onChange={updateUser}
             name="name"
           />
         </div>
@@ -42,8 +38,8 @@ const Login = props => {
             className="form-control"
             id="id"
             required
-            value={user.id}
-            onChange={handleInputChange}
+            value={userId}
+            onChange={updateUser}
             name="id"
           />
         </div>
@@ -55,5 +51,3 @@ const Login = props => {
     </div>
   );
 };
-
-export default Login;

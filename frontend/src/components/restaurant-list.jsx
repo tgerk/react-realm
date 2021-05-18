@@ -1,37 +1,19 @@
 import React, { useState, useEffect } from "react";
-import RestaurantDataService from "../services/restaurant";
 import { Link } from "react-router-dom";
 
-const RestaurantsList = props => {
+import { getAll as getRestaurants, getCuisines, find as searchRestaurants } from "../services/restaurant";
+
+export default function RestaurantList() {
+
+  // TODO: useContext to cache pages and searches
   const [restaurants, setRestaurants] = useState([]);
   const [searchName, setSearchName ] = useState("");
   const [searchZip, setSearchZip ] = useState("");
   const [searchCuisine, setSearchCuisine ] = useState("");
   const [cuisines, setCuisines] = useState(["All Cuisines"]);
 
-  useEffect(() => {
-    retrieveRestaurants();
-    retrieveCuisines();
-  }, []);
-
-  const onChangeSearchName = e => {
-    const searchName = e.target.value;
-    setSearchName(searchName);
-  };
-
-  const onChangeSearchZip = e => {
-    const searchZip = e.target.value;
-    setSearchZip(searchZip);
-  };
-
-  const onChangeSearchCuisine = e => {
-    const searchCuisine = e.target.value;
-    setSearchCuisine(searchCuisine);
-    
-  };
-
   const retrieveRestaurants = () => {
-    RestaurantDataService.getAll()
+    getRestaurants()
       .then(response => {
         console.log(response.data);
         setRestaurants(response.data.restaurants);
@@ -43,23 +25,23 @@ const RestaurantsList = props => {
   };
 
   const retrieveCuisines = () => {
-    RestaurantDataService.getCuisines()
+    getCuisines()
       .then(response => {
         console.log(response.data);
         setCuisines(["All Cuisines"].concat(response.data));
-        
       })
       .catch(e => {
         console.log(e);
       });
   };
 
-  const refreshList = () => {
+  useEffect(() => {
     retrieveRestaurants();
-  };
+    retrieveCuisines();
+  }, []);  //TODO: update the page on change of name, zip, cuisine & remove the "search" buttons;  implement a short delay to limit hammering the server
 
   const find = (query, by) => {
-    RestaurantDataService.find(query, by)
+    searchRestaurants(query, by)
       .then(response => {
         console.log(response.data);
         setRestaurants(response.data.restaurants);
@@ -70,19 +52,25 @@ const RestaurantsList = props => {
   };
 
   const findByName = () => {
-    find(searchName, "name")
+    find(searchName, "name");
+    setSearchZip("");
+    setSearchCuisine("All Cuisines");
   };
-
+  
   const findByZip = () => {
     find(searchZip, "zipcode")
+    setSearchName("");
+    setSearchCuisine("All Cuisines");
   };
-
+  
   const findByCuisine = () => {
     if (searchCuisine === "All Cuisines") {
-      refreshList();
+      retrieveRestaurants();
     } else {
       find(searchCuisine, "cuisine")
     }
+    setSearchName("");
+    setSearchZip("");
   };
 
   return (
@@ -94,7 +82,7 @@ const RestaurantsList = props => {
             className="form-control"
             placeholder="Search by name"
             value={searchName}
-            onChange={onChangeSearchName}
+            onChange={({ target: { value }}) => { setSearchName(value) }}
           />
           <div className="input-group-append">
             <button
@@ -112,7 +100,7 @@ const RestaurantsList = props => {
             className="form-control"
             placeholder="Search by zip"
             value={searchZip}
-            onChange={onChangeSearchZip}
+            onChange={({ target: { value }}) => { setSearchZip(value) }}
           />
           <div className="input-group-append">
             <button
@@ -126,7 +114,7 @@ const RestaurantsList = props => {
         </div>
         <div className="input-group col-lg-4">
 
-          <select onChange={onChangeSearchCuisine}>
+          <select onChange={({ target: { value }}) => { setSearchCuisine(value) }}>
              {cuisines.map(cuisine => {
                return (
                  <option value={cuisine}> {cuisine.substr(0, 20)} </option>
@@ -146,22 +134,22 @@ const RestaurantsList = props => {
         </div>
       </div>
       <div className="row">
-        {restaurants.map((restaurant) => {
-          const address = `${restaurant.address.building} ${restaurant.address.street}, ${restaurant.address.zipcode}`;
+        {restaurants.map(({ _id: id, name, cuisine, address: { building, street, zipcode }}, index) => {
+          const address = `${building} ${street}, ${zipcode}`;
           return (
-            <div className="col-lg-4 pb-1">
+            <div className="col-lg-4 pb-1" key={index}>
               <div className="card">
                 <div className="card-body">
-                  <h5 className="card-title">{restaurant.name}</h5>
+                  <h5 className="card-title">{name}</h5>
                   <p className="card-text">
-                    <strong>Cuisine: </strong>{restaurant.cuisine}<br/>
+                    <strong>Cuisine: </strong>{cuisine}<br/>
                     <strong>Address: </strong>{address}
                   </p>
                   <div className="row">
-                  <Link to={"/restaurants/"+restaurant._id} className="btn btn-primary col-lg-5 mx-1 mb-1">
-                    View Reviews
-                  </Link>
-                  <a target="_blank" rel="noreferrer" href={"https://www.google.com/maps/place/" + address} className="btn btn-primary col-lg-5 mx-1 mb-1">View Map</a>
+                    <Link to={`/restaurants/${id}`} className="btn btn-primary col-lg-5 mx-1 mb-1">
+                      View Reviews
+                    </Link>
+                    <a target="_blank" rel="noreferrer" href={`https://www.google.com/maps/place/${address}`} className="btn btn-primary col-lg-5 mx-1 mb-1">View Map</a>
                   </div>
                 </div>
               </div>
@@ -174,5 +162,3 @@ const RestaurantsList = props => {
     </div>
   );
 };
-
-export default RestaurantsList;
