@@ -1,79 +1,62 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useDebounce } from "use-debounce"
 
-import { getAll as getRestaurants, getCuisines, find as searchRestaurants } from "../services/restaurant";
+import { getAll as getRestaurants, getCuisines, search as searchRestaurants } from "../services/restaurant";
 
+//TODO: pagination & caching
 export default function RestaurantList() {
 
-  // TODO: useContext to cache pages and searches
   const [restaurants, setRestaurants] = useState([]);
   const [cuisines, setCuisines] = useState(["All Cuisines"]);
-  const [searchName, setSearchName ] = useState("");
-  const [searchZip, setSearchZip ] = useState("");
-  const [searchCuisine, setSearchCuisine ] = useState("");
+  const [query, setQuery] = useState({})
 
-  // TODO: use state parameters to always parameterize search-retrieval
-  const retrieveRestaurants = () => {
-    getRestaurants()
-      .then(response => {
-        console.log(response.data);
-        setRestaurants(response.data.restaurants);
-        
-      })
+  useEffect(() => {
+    return retrieveCuisines()
+  }, []);
+  
+  // update on page load and (after a brief delay) on change of search parameters
+  const [debouncedQuery] = useDebounce(query, 800);
+  useEffect(() => {
+    return retrieveRestaurants(debouncedQuery);
+  }, [debouncedQuery]);
+
+  const retrieveRestaurants = (query) => {
+    const req = (() => Object.entries(query).length ? searchRestaurants(query) : getRestaurants())()
+    req.then(response => {
+      console.log(response.data);
+      setRestaurants(response.data.restaurants);
+    })
       .catch(e => {
         console.log(e);
       });
+
+    return req.abort
   };
 
   const retrieveCuisines = () => {
-    getCuisines()
-      .then(response => {
-        console.log(response.data);
+    const req = getCuisines()
+    req.then(response => {
         setCuisines(["All Cuisines"].concat(response.data));
       })
       .catch(e => {
         console.log(e);
       });
+
+    return req.abort
   };
 
-  //TODO: update the page (after a brief delay) on change of name, zip, cuisine & remove the "search" buttons
-  useEffect(() => {
-    retrieveRestaurants();
-    retrieveCuisines();
-  }, []);
-
-  const find = (query, by) => {
-    searchRestaurants(query, by)
-      .then(response => {
-        console.log(response.data);
-        setRestaurants(response.data.restaurants);
-      })
-      .catch(e => {
-        console.log(e);
-      });
-  };
-
-  const findByName = () => {
-    setSearchZip("");
-    setSearchCuisine("All Cuisines");
-    find(searchName, "name");
-  };
-  
-  const findByZip = () => {
-    setSearchName("");
-    setSearchCuisine("All Cuisines");
-    find(searchZip, "zipcode")
-  };
-  
-  const findByCuisine = () => {
-    setSearchName("");
-    setSearchZip("");
-    if (searchCuisine === "All Cuisines") {
-      retrieveRestaurants();
-    } else {
-      find(searchCuisine, "cuisine")
+  const updateQuery = (key, value) => {
+    const newQuery = { ...query }
+    if (key === "cuisine" && value === "All Cuisines" || !value) {
+      // choosing "All Cuisines" erases the cuisine key from the query
+      delete newQuery[key]
+      setQuery(newQuery)
+      return
     }
-  };
+
+    setQuery({ ...query, [key]: value })
+  }
 
   return (
     <div>
@@ -83,60 +66,32 @@ export default function RestaurantList() {
             type="text"
             className="form-control"
             placeholder="Search by name"
-            value={searchName}
-            onChange={({ target: { value }}) => { setSearchName(value) }}
+            value={query.name}
+            onChange={({ target: { value } }) => { updateQuery("name", value) }}
           />
-          <div className="input-group-append">
-            <button
-              className="btn btn-outline-secondary"
-              type="button"
-              onClick={findByName}
-            >
-              Search
-            </button>
-          </div>
         </div>
         <div className="input-group col-lg-4">
           <input
             type="text"
             className="form-control"
             placeholder="Search by zip"
-            value={searchZip}
-            onChange={({ target: { value }}) => { setSearchZip(value) }}
+            value={query.zipcode}
+            onChange={({ target: { value } }) => { updateQuery("zipcode", value) }}
           />
-          <div className="input-group-append">
-            <button
-              className="btn btn-outline-secondary"
-              type="button"
-              onClick={findByZip}
-            >
-              Search
-            </button>
-          </div>
         </div>
         <div className="input-group col-lg-4">
-
-          <select onChange={({ target: { value }}) => { setSearchCuisine(value) }}>
-             {cuisines.map(cuisine => {
-               return (
-                 <option value={cuisine}> {cuisine.substr(0, 20)} </option>
-               )
-             })}
+          <select onChange={({ target: { value } }) => { updateQuery("cuisine", value) }}>
+            {cuisines.map(cuisine => {
+              return (
+                <option value={cuisine}> {cuisine.substr(0, 20)} </option>
+              )
+            })}
           </select>
-          <div className="input-group-append">
-            <button
-              className="btn btn-outline-secondary"
-              type="button"
-              onClick={findByCuisine}
-            >
-              Search
-            </button>
-          </div>
-
         </div>
       </div>
+
       <div className="row">
-        {restaurants.map(({ _id: id, name, cuisine, address}, index) => {
+        {restaurants.map(({ _id: id, name, cuisine, address }, index) => {
           address = `${address.building} ${address.street}, ${address.zipcode}`;
           return (
             <div className="col-lg-4 pb-1" key={index}>
@@ -144,7 +99,7 @@ export default function RestaurantList() {
                 <div className="card-body">
                   <h5 className="card-title">{name}</h5>
                   <p className="card-text">
-                    <strong>Cuisine: </strong>{cuisine}<br/>
+                    <strong>Cuisine: </strong>{cuisine}<br />
                     <strong>Address: </strong>{address}
                   </p>
                   <div className="row">

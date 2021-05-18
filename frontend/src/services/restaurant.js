@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "axios"
 
 const http = axios.create({
   baseURL: process.env.REACT_APP_BASE_URL,
@@ -7,16 +7,27 @@ const http = axios.create({
   }
 });
 
+function getWithAbort(uri) {
+  console.debug(uri)
+  const source = axios.CancelToken.source(),
+    req = http.get(uri, { cancelToken: source.token })
+  
+  // tack a method onto the returned Promise object
+  req.abort = () => source.cancel()
+  return req
+}
+
 export function getAll(page = 0) {
-  return http.get(`?page=${page}`);
+  return getWithAbort(`?page=${page}`);
+}
+
+export function search(query, page = 0) {
+  query = new URLSearchParams(query)
+  return getWithAbort(`?${query}&page=${page}`);
 }
 
 export function get(id) {
   return http.get(`/id/${id}`);
-}
-
-export function find(query, by = "name", page = 0) {
-  return http.get(`?${by}=${query}&page=${page}`);
 }
 
 export function createReview(data) {
@@ -33,5 +44,5 @@ export function deleteReview(id, userId) {
 }
 
 export function getCuisines(id) {
-  return http.get(`/cuisines`);
+  return getWithAbort(`/cuisines`);
 }
