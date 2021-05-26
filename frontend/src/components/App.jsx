@@ -6,18 +6,16 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import RestaurantList from "./restaurant-list";
 import Restaurant from "./restaurant";
 import Review from "./review";
-import Login from "./login";
+import Login, { LoginMenuItem } from "./login";
 
 import UserContext from "../services/user"
 
 export default function App() {
-
-  // components access current user through context
-  const userState = React.useState(null),
-    [user, setUser] = userState
+  const user = React.useState(null),  // components access current user through context
+    [_, setUser] = user
 
   return (
-    <UserContext.Provider value={userState}>
+    <UserContext.Provider value={user}>
       <nav className="navbar navbar-expand navbar-dark bg-dark">
         <a href="/restaurants" className="navbar-brand">
           Restaurant Reviews
@@ -29,26 +27,13 @@ export default function App() {
             </Link>
           </li>
           <li className="nav-item" >
-            {user ? (
-              <a onClick={() => setUser(null)} className="nav-link" style={{ cursor: 'pointer' }}>
-                Logout {user.name}
-              </a>
-            ) : (
-              <Link to={"/login"} className="nav-link">
-                Login
-              </Link>
-            )}
-
+            <LoginMenuItem />
           </li>
         </div>
       </nav>
 
       <div className="container mt-3">
         <Switch>
-          <Route exact path={["/", "/restaurants"]} component={RestaurantList} />
-
-          <Route path="/login" component={Login} />
-
           <Route
             path="/restaurants/:id/review"
             render={(props) => {
@@ -66,6 +51,8 @@ export default function App() {
               )
             }}
           />
+
+          <Route path={["/", "/restaurants"]} component={RestaurantList} />
         </Switch>
       </div>
     </UserContext.Provider>

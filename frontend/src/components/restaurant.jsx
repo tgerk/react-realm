@@ -56,9 +56,7 @@ export default function Restaurant({ id }) {
         <strong>Cuisine: </strong>{cuisine}<br />
         <strong>Address: </strong>{`${address.building} ${address.street}, ${address.zipcode}`}
       </p>
-      <Link to={`/restaurants/${id}/review`} className="btn btn-primary">
-        Add Review
-          </Link>
+      <Link to={`/restaurants/${id}/review`} className="btn btn-primary"> Add Review </Link>
       <h4> Reviews </h4>
       <div className="row">
         {reviews.length > 0 ? (
@@ -91,7 +89,7 @@ export default function Restaurant({ id }) {
           })
         ) : (
           <div className="col-sm-4">
-            <p>Add the first review!</p>
+            <p>Be the first to review!</p>
           </div>
         )}
       </div>

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useDebounce } from "use-debounce"
 
+import { Dropdown, CardGallery } from "../presentation"
 import { getAll as getRestaurants, getCuisines, search as searchRestaurants } from "../services/restaurant";
 
 //TODO: pagination & caching
@@ -14,12 +15,14 @@ export default function RestaurantList() {
   useEffect(() => {
     return retrieveCuisines()
   }, []);
-  
+
   // update on page load and (after a brief delay) on change of search parameters
   const [debouncedQuery] = useDebounce(query, 800);
   useEffect(() => {
     return retrieveRestaurants(debouncedQuery);
   }, [debouncedQuery]);
+
+  const focusRef = useRef();
 
   const retrieveRestaurants = (query) => {
     const req = (() => Object.entries(query).length ? searchRestaurants(query) : getRestaurants())()
@@ -37,8 +40,8 @@ export default function RestaurantList() {
   const retrieveCuisines = () => {
     const req = getCuisines()
     req.then(response => {
-        setCuisines(["All Cuisines"].concat(response.data));
-      })
+      setCuisines(["All Cuisines"].concat(response.data));
+    })
       .catch(e => {
         console.log(e);
       });
@@ -48,7 +51,7 @@ export default function RestaurantList() {
 
   const updateQuery = (key, value) => {
     const newQuery = { ...query }
-    if (key === "cuisine" && value === "All Cuisines" || !value) {
+    if (key === "cuisine" && (value === "All Cuisines" || !value)) {
       // choosing "All Cuisines" erases the cuisine key from the query
       delete newQuery[key]
       setQuery(newQuery)
@@ -60,62 +63,58 @@ export default function RestaurantList() {
 
   return (
     <div>
-      <div className="row pb-1">
-        <div className="input-group col-lg-4">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Search by name"
-            value={query.name}
-            onChange={({ target: { value } }) => { updateQuery("name", value) }}
-          />
-        </div>
-        <div className="input-group col-lg-4">
-          <input
-            type="text"
-            className="form-control"
-            placeholder="Search by zip"
-            value={query.zipcode}
-            onChange={({ target: { value } }) => { updateQuery("zipcode", value) }}
-          />
-        </div>
-        <div className="input-group col-lg-4">
-          <select onChange={({ target: { value } }) => { updateQuery("cuisine", value) }}>
-            {cuisines.map(cuisine => {
-              return (
+      <Dropdown affordanceType="button" affordanceText="Search" focusRef={focusRef}>
+        <div className="row pb-1">
+          <div className="input-group col-lg-4">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search by name"
+              value={query.name}
+              onChange={({ target: { value } }) => { updateQuery("name", value) }}
+              ref={focusRef}
+            />
+          </div>
+          <div className="input-group col-lg-4">
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Search by zip"
+              value={query.zipcode}
+              onChange={({ target: { value } }) => { updateQuery("zipcode", value) }}
+            />
+          </div>
+          <div className="input-group col-lg-4">
+            <select onChange={({ target: { value } }) => { updateQuery("cuisine", value) }}>
+              {cuisines.map(cuisine => (
                 <option value={cuisine}> {cuisine.substr(0, 20)} </option>
-              )
-            })}
-          </select>
+              ))}
+            </select>
+          </div>
         </div>
-      </div>
+      </Dropdown>
 
-      <div className="row">
-        {restaurants.map(({ _id: id, name, cuisine, address }, index) => {
-          address = `${address.building} ${address.street}, ${address.zipcode}`;
-          return (
-            <div className="col-lg-4 pb-1" key={index}>
-              <div className="card">
-                <div className="card-body">
-                  <h5 className="card-title">{name}</h5>
-                  <p className="card-text">
-                    <strong>Cuisine: </strong>{cuisine}<br />
-                    <strong>Address: </strong>{address}
-                  </p>
-                  <div className="row">
-                    <Link to={`/restaurants/${id}`} className="btn btn-primary col-lg-5 mx-1 mb-1">
-                      View Reviews
-                    </Link>
-                    <a target="_blank" rel="noreferrer" href={`https://www.google.com/maps/place/${address}`} className="btn btn-primary col-lg-5 mx-1 mb-1">View Map</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-
-
-      </div>
+      <CardGallery items={restaurants.map(restaurantToCardMapping)} />
     </div>
   );
 };
+
+function restaurantToCardMapping({ _id: id, name, cuisine, address }) {
+  address = `${address.building} ${address.street}, ${address.zipcode}`;
+
+  return ({
+    title: name,
+    text: (<ul style={{ listStyle: "none" }}>
+      <li>
+        <strong>Cuisine: </strong>{cuisine}
+      </li>
+      <li>
+        <strong>Address: </strong>{address}
+      </li>
+    </ul>),
+    buttons: [
+      <Link to={`/restaurants/${id}`}> View Reviews </Link>,
+      <a target="_blank" rel="noreferrer" href={`https://www.google.com/maps/place/${address}`}> View Map </a>
+    ]
+  })
+}

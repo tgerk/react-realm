@@ -1,22 +1,18 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useRef } from "react";
 
+import { Dropdown } from "../presentation"
 import UserContext from "../services/user";
 
-export default function Login({ history }) {
+export default function Login({ doLogin, focusRef }) {
 
-  const [currentUser, setCurrentUser] = useContext(UserContext);
+  const [currentUser, _] = useContext(UserContext);
   const [user, setUser] = useState(currentUser || {});
   const { name: userName, id: userId } = user;
-  
-  const updateUser = ({ target: { name, value }}) => {
+
+  const updateUser = ({ target: { name, value } }) => {
     setUser({ ...user, [name]: value });
   };
-  
-  const doLogin = () => {
-    setCurrentUser(user)
-    history.push('/');  // from Route props
-  }
-  
+
   return (
     <div className="submit-form">
       <div>
@@ -30,6 +26,7 @@ export default function Login({ history }) {
             value={userName}
             onChange={updateUser}
             name="name"
+            ref={focusRef}
           />
         </div>
 
@@ -46,10 +43,30 @@ export default function Login({ history }) {
           />
         </div>
 
-        <button onClick={doLogin} className="btn btn-success">
+        <button onClick={() => doLogin(user)} className="btn btn-success">
           Login
         </button>
       </div>
     </div>
   );
 };
+
+
+export function LoginMenuItem() {
+  const [currentUser, setUser] = useContext(UserContext)
+  const focusRef = useRef();
+
+  if (currentUser) {
+    return (
+      <a onClick={() => setUser(null)} className="nav-link" style={{ cursor: 'pointer' }}>
+        Logout {currentUser.name}
+      </a>
+    )
+  }
+
+  return (
+    <Dropdown affordanceType="button" affordanceText="Login" focusRef={focusRef} style={{ postion: "relative" }}>
+      <Login doLogin={setUser} style={{ postion: "absolute" }} focusRef={focusRef} />
+    </Dropdown>
+  )
+}
