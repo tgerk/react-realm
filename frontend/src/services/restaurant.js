@@ -18,16 +18,16 @@ function getWithAbort(uri) {
 }
 
 export function getAll(page = 0) {
-  return getWithAbort(`?page=${page}`);
+  return getWithAbort(`restaurants?page=${page}`);
 }
 
 export function search(query, page = 0) {
-  query = new URLSearchParams(query)
-  return getWithAbort(`?${query}&page=${page}`);
+  query = new URLSearchParams({ ...query, page })
+  return getWithAbort(`restaurants?${query}`);
 }
 
 export function get(id) {
-  return http.get(`/id/${id}`);
+  return http.get(`/restaurant?id=${id}`);
 }
 
 export function createReview(data) {
@@ -36,11 +36,11 @@ export function createReview(data) {
 
 export function updateReview(data) {
   console.info(data)
-  return http.put("/review", data);
+  return http.put("/review-update", data);
 }
 
 export function deleteReview(id, userId) {
-  return http.delete(`/review?id=${id}`, { data: { user_id: userId } });
+  return http.delete(`/review-delete?id=${id}`, { data: { user_id: userId } });
 }
 
 export function getCuisines(id) {
