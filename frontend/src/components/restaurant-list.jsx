@@ -69,9 +69,9 @@ export default function RestaurantList() {
             <input
               type="text"
               className="form-control"
-              placeholder="Search by name"
+              placeholder="Text search (name or street)"
               value={query.name}
-              onChange={({ target: { value } }) => { updateQuery("name", value) }}
+              onChange={({ target: { value } }) => { updateQuery("text", value) }}
               ref={focusRef}
             />
           </div>
