@@ -3,11 +3,18 @@ import * as Realm from "realm-web";
 
 import actions from "./actions";
 
-function getWithCancel(http, uri) {
-  const source = axios.CancelToken.source(),
-    req = http.get(uri, { cancelToken: source.token });
+function getWithCancel(http, url, options) {
+  const source = axios.CancelToken.source();
 
-  return [req, () => source.cancel()];
+  return [
+    http.request({
+      ...options,
+      url,
+      method: "GET",
+      cancelToken: source.token,
+    }),
+    () => source.cancel(),
+  ];
 }
 
 // resolves the promise to undefined
@@ -58,10 +65,10 @@ class RealmAPI {
       });
     }
 
-    this._authSDK(user).then((v) => {
-      this.setRealmUser(v);
-      delete this.setRealmUser;
-    });
+    // this._authSDK(user).then((v) => {
+    //   this.setRealmUser(v);
+    //   delete this.setRealmUser;
+    // });
   }
 
   _authREST(user) {
@@ -115,8 +122,11 @@ class RealmAPI {
         params: new URLSearchParams({ page }),
       }),
       q = p
-        .then(({ data: { restaurants } }) =>
-          this.dispatch({ type: actions.GET_RESTAURANTS, payload: restaurants })
+        .then(({ data }) =>
+          this.dispatch({
+            type: actions.GET_RESTAURANTS,
+            payload: data.restaurants,
+          })
         )
         .catch(ignoreCancellationError);
 
@@ -131,8 +141,11 @@ class RealmAPI {
         params: new URLSearchParams({ ...query, page }),
       }),
       q = p
-        .then(({ data: { restaurants } }) =>
-          this.dispatch({ type: actions.GET_RESTAURANTS, payload: restaurants })
+        .then(({ data }) =>
+          this.dispatch({
+            type: actions.GET_RESTAURANTS,
+            payload: data.restaurants,
+          })
         )
         .catch(ignoreCancellationError);
 
@@ -153,25 +166,34 @@ class RealmAPI {
   async createReview(data) {
     const httpRealm = await this.httpRealm; // pause until auth is complete
 
-    return httpRealm.post("reviews", data);
-  }
-
-  async updateReview({ id, ...data }) {
-    const httpRealm = await this.httpRealm; // pause until auth is complete
-
-    return httpRealm.put("reviews", {
-      params: new URLSearchParams({ id }),
-      data,
+    return httpRealm.post("reviews", data).then(({ data }) => {
+      this.dispatch({ action: actions.ADD_REVIEW, payload: data });
     });
   }
 
-  async deleteReview(id, user_id) {
+  async updateReview(id, { userId, ...data }) {
     const httpRealm = await this.httpRealm; // pause until auth is complete
 
     return httpRealm
-      .delete("reviews", { params: new URLSearchParams({ id, user_id }) })
+      .put("reviews", {
+        params: new URLSearchParams({ id, userId }),
+        data,
+      })
+      .then(({ data }) => {
+        this.dispatch({ action: actions.EDIT_REVIEW, payload: data });
+      });
+  }
+
+  async deleteReview(id, { restaurantId, userId }) {
+    const httpRealm = await this.httpRealm; // pause until auth is complete
+
+    return httpRealm
+      .delete("reviews", { params: new URLSearchParams({ id, userId }) })
       .then(() => {
-        this.dispatch({ action: actions.DELETE_REVIEW, payload: id });
+        this.dispatch({
+          action: actions.DELETE_REVIEW,
+          payload: { id, restaurantId },
+        });
       });
   }
 

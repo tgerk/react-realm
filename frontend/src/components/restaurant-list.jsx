@@ -91,8 +91,7 @@ export default function RestaurantList() {
               {cuisines.map((cuisine, key) => (
                 <option value={cuisine} key={key}>
                   {" "}
-                  {cuisine.substr(0, 20)}
-                  {" "}
+                  {cuisine.substr(0, 20)}{" "}
                 </option>
               ))}
             </select>
@@ -100,34 +99,41 @@ export default function RestaurantList() {
         </div>
       </Dropdown>
 
-      <CardGallery items={restaurants.map(restaurantToCardMapping)} />
+      {restaurants.length ? (
+        <CardGallery items={restaurants.map(restaurantToCardMapping)} />
+      ) : (
+        <div>
+          <br />
+          <p>Loading...</p>
+        </div>
+      )}
     </div>
   );
-}
 
-function restaurantToCardMapping({ id, name, cuisine, address }) {
-  address = `${address.building} ${address.street}, ${address.zipcode}`;
+  function restaurantToCardMapping({ id, name, cuisine, address }) {
+    address = `${address.building} ${address.street}, ${address.zipcode}`;
 
-  return {
-    title: name,
-    text: (
-      <dl>
-        <dt>Cuisine:</dt>
-        <dd>{cuisine}</dd>
-        <dt>Address:</dt>
-        <dd>{address}</dd>
-      </dl>
-    ),
-    buttons: [
-      <Link to={`/restaurants/${id}`}> See Reviews </Link>,
-      <a
-        href={`https://www.google.com/maps/place/${address}`}
-        target="_blank"
-        rel="noreferrer"
-      >
-        {" "}
-        View Map{" "}
-      </a>,
-    ],
-  };
+    return {
+      title: name,
+      text: (
+        <dl>
+          <dt>Cuisine:</dt>
+          <dd>{cuisine}</dd>
+          <dt>Address:</dt>
+          <dd>{address}</dd>
+        </dl>
+      ),
+      buttons: [
+        <Link to={`/restaurants/${id}`}> See Reviews </Link>,
+        <a
+          href={`https://www.google.com/maps/place/${address}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {" "}
+          View Map{" "}
+        </a>,
+      ],
+    };
+  }
 }

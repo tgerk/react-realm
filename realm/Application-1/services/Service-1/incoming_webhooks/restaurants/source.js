@@ -1,78 +1,69 @@
 exports = async function (payload, response) {
-  if ("id" in payload.query ) {
+  if ("id" in payload.query) {
     // adopt the strategy that each logical collection (in the RESTful web-resource sense) has a single webhook
     // (unfortunately subcollections are not acheivable on Realm; related collections are grouped in a Service)
 
     // return a single item from the restaurants collection (in the MongoDB sense)
-    return getOne(payload, response)
+    return getOne(payload, response);
   }
 
-  const pipeline = (query, skip, limit) => ([
+  const pipeline = (query, skip, limit) => [
     {
-      $match: query
+      $match: query,
     },
     {
       $facet: {
-        total: [
-          { $count: "count" }
-        ],
-        page: [
-          { $skip: skip },
-          { $limit: limit }
-        ]
-      }
-    }
-  ])
+        count: [{ $count: "count" }],
+        page: [{ $skip: skip }, { $limit: limit }],
+      },
+    },
+  ];
 
-  const count = parseInt(payload.query.count) || parseInt(payload.query.restaurantsPerPage) || 20,  // results per page
-    offset = parseInt(payload.query.offset) || parseInt(payload.query.page) * count || 0,  // index of first result
-    query = {},
+  const limit = // results per page
+      parseInt(payload.query.limit) ||
+      parseInt(payload.query.restaurantsPerPage) ||
+      20,
+    skip = // index of first result
+      parseInt(payload.query.skip) || parseInt(payload.query.page) * limit || 0;
+
+  const query = {},
     filters = {};
-
   if (payload.query.cuisine) {
     filters.cuisine = payload.query.cuisine;
     query.cuisine = { $eq: payload.query.cuisine };
-  } else if (payload.query.zipcode) {
+  }
+  if (payload.query.zipcode) {
     filters.zipcode = payload.query.zipcode;
     query["address.zipcode"] = { $eq: payload.query.zipcode };
-  } else if (payload.query.text) {
+  }
+  if (payload.query.text) {
     filters.text = payload.query.text;
     query.$text = { $search: payload.query.text };
   }
 
-  //TODO: handle uncaught exception, error case 404: NOT FOUND
-  const restaurants = context.services.get("mongodb-atlas").db("sample_restaurants").collection("restaurants"),
-    { total, page } = await restaurants.aggregate(pipeline(query, offset, count)).next(),
-    totalCount = total[0].count;
+  const restaurants = context.services
+      .get("mongodb-atlas")
+      .db("sample_restaurants")
+      .collection("restaurants"),
+    search = pipeline(query, skip, limit),
+    {
+      count: [{ count }],
+      page,
+    } = await restaurants.aggregate(search).next();
 
-  const result = {
-      restaurants: page.map(({ _id, ...rest }) => ({ id: _id.toString(), ...rest })),
-      totalCount,
-      nav: {}
-    };
-
-  if (offset > 0) {
-    result.nav.first = String(new URLSearchParams({ ...filters, count }));
-
-    if (offset >= count) {
-      result.nav.prev = String(new URLSearchParams({ ...filters, offset: max(offset - count, 0), count }));
-    }
-  }
-
-  if (offset < totalCount - count) {
-    if (offset < totalCount - count - count) {
-      result.nav.next = String(new URLSearchParams({ ...filters, offset: (offset + count), count }));
-    }
-
-    result.nav.last = String(new URLSearchParams({ ...filters, offset: count * Math.floor(totalCount / count), count }));
-  }
-
-  // clients should not have to digest extended JSON encoding!
-  response.setBody(JSON.stringify(result));
+  response.setStatusCode(200);
+  response.setBody(
+    JSON.stringify({
+      count,
+      search,
+      restaurants: page.map(transformRestaurant),
+      nav: navLinks(count, skip, limit, filters),
+    })
+  );
 };
 
 async function getOne(payload, response) {
-  const pipeline = (id) => ([
+  const pipeline = (id) => [
     {
       $match: {
         _id: BSON.ObjectId(id),
@@ -106,22 +97,74 @@ async function getOne(payload, response) {
         reviews: "$reviews",
       },
     },
-  ]);
+  ];
 
   //TODO: handle uncaught exceptions, error cases 400: invalid id, 404: NOT FOUND
-  const restaurants = context.services.get("mongodb-atlas").db("sample_restaurants").collection("restaurants"),
-    { _id, reviews = [], ...rest } = await restaurants.aggregate(pipeline(payload.query.id)).next();
+  const restaurants = context.services
+      .get("mongodb-atlas")
+      .db("sample_restaurants")
+      .collection("restaurants"),
+    restaurant = await restaurants.aggregate(pipeline(payload.query.id)).next();
 
-  const result = {
-    id: _id.toString(),
-    ...rest,
-    reviews: reviews.map(({ _id, date, ...rest }) => ({
-      id: _id.toString(),
-      date: new Date(date),
-      ...rest
-    }))
-  };
-
-  // clients should not have to digest extended JSON encoding!
-  response.setBody(JSON.stringify(result));
+  response.setStatusCode(200);
+  response.setBody(JSON.stringify(transformRestaurantWithReviews(restaurant)));
 }
+
+const transformRestaurant = ({ _id, ...rest }) => ({
+  id: _id.toString(),
+  ...rest,
+});
+
+const transformRestaurantWithReviews = ({ _id, reviews = [], ...rest }) => ({
+  id: _id.toString(),
+  ...rest,
+  reviews: reviews.map(transformReview),
+});
+
+const transformReview = ({ _id, restaurant_id, user_id, date, ...rest }) => ({
+  id: _id.toString(),
+  restaurantId: restaurant_id.toString(),
+  userId: user_id,
+  date: new Date(date),
+  ...rest,
+});
+
+const navLinks = (total, offset = 0, limit = 20, otherParams = {}) => {
+  const nav = {};
+
+  if (offset > 0) {
+    nav.first = String(new URLSearchParams({ ...otherParams, limit }));
+
+    if (offset >= limit) {
+      nav.prev = String(
+        new URLSearchParams({
+          ...otherParams,
+          offset: max(offset - limit, 0),
+          limit,
+        })
+      );
+    }
+  }
+
+  if (offset + limit < total) {
+    if (offset + limit < total - limit) {
+      nav.next = String(
+        new URLSearchParams({
+          ...otherParams,
+          offset: offset + limit,
+          limit,
+        })
+      );
+    }
+
+    nav.last = String(
+      new URLSearchParams({
+        ...otherParams,
+        offset: limit * Math.floor(total / limit),
+        limit,
+      })
+    );
+  }
+
+  return nav;
+};

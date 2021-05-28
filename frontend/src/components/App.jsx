@@ -39,7 +39,7 @@ export default function App() {
                 return (
                   <Review
                     {...props}
-                    id={props.match.params.id}
+                    restaurantId={props.match.params.id}
                     currentReview={props.location.state?.currentReview || {}}
                   />
                 );

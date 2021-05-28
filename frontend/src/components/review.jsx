@@ -5,26 +5,27 @@ import UserContext from "../services/user";
 import { useRealm } from "../services/realm";
 
 export default function Review({
-  id: restaurantId,
+  restaurantId,
   currentReview: { id: reviewId, text: initialText },
 }) {
   const [currentUser] = useContext(UserContext);
-  const [_, api] = useRealm();
+  const [, api] = useRealm();
+
   const [saved, setSaved] = useState(false);
   const [reviewText, setReview] = useState(initialText);
 
   const saveReview = () => {
-    ((review) =>
-      reviewId
-        ? api.updateReview({ ...review, id: reviewId })
-        : api.createReview(review))({
-      text: reviewText,
-      name: currentUser.name,
-      user_id: currentUser.id,
-      restaurant_id: restaurantId,
-    })
-      .then((response) => {
-        console.log(response.data);
+    const updateOrCreate = (data) =>
+        reviewId ? api.updateReview(reviewId, data) : api.createReview(data),
+      review = {
+        userId: currentUser.id,
+        name: currentUser.name,
+        restaurantId: restaurantId,
+        text: reviewText,
+      };
+
+    updateOrCreate(review)
+      .then(() => {
         setSaved(true);
       })
       .catch((e) => {
@@ -44,7 +45,7 @@ export default function Review({
   }
 
   if (!currentUser) {
-    return <div>Please log in.</div>;
+    return <div>Sorry! Only logged-in users can leave reviews.</div>;
   }
 
   return (

@@ -56,13 +56,9 @@ export function LoginMenuItem() {
 
   if (currentUser) {
     return (
-      <a
-        onClick={() => setUser(null)}
-        className="nav-link"
-        style={{ cursor: "pointer" }}
-      >
+      <button onClick={() => setUser(null)} className="btn btn-success">
         Logout {currentUser.name}
-      </a>
+      </button>
     );
   }
 
