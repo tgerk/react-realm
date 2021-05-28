@@ -1,7 +1,6 @@
 import actions from "./actions";
 
 export default function realmReducer(state, { type, payload = {} }) {
-  // console.trace(type, payload);
   switch (type) {
     default:
       break;
@@ -14,15 +13,14 @@ export default function realmReducer(state, { type, payload = {} }) {
       return { ...state, restaurant: payload };
 
     case actions.ADD_REVIEW: {
-      const {
-        restaurant: { restaurantId, reviews, ...restaurant },
-        ...restState
-      } = state;
+      console.debug(state.restaurant.id, state.restaurant.restaurantId, payload)
+      const { restaurant = {}, ...restState } = state,
+        { id: restaurantId, reviews, ...restRestaurant } = restaurant
       if (restaurantId !== payload.restaurantId) break;
       return {
         restaurant: {
           restaurantId,
-          ...restaurant,
+          ...restRestaurant,
           reviews: [...reviews, payload],
         },
         ...restState,
@@ -30,15 +28,14 @@ export default function realmReducer(state, { type, payload = {} }) {
     }
 
     case actions.EDIT_REVIEW: {
-      const {
-        restaurant: { restaurantId, reviews, ...restaurant },
-        ...restState
-      } = state;
+      console.debug(state.restaurant.id, state.restaurant.restaurantId, payload)
+      const { restaurant = {}, ...restState } = state,
+        { id: restaurantId, reviews, ...restRestaurant } = restaurant
       if (restaurantId !== payload.restaurantId) break;
       return {
         restaurant: {
           restaurantId,
-          ...restaurant,
+          ...restRestaurant,
           reviews: reviews.map((item) =>
             item.id === payload.id ? payload : item
           ),
@@ -48,16 +45,15 @@ export default function realmReducer(state, { type, payload = {} }) {
     }
 
     case actions.DELETE_REVIEW: {
-      const {
-        restaurant: { restaurantId, reviews, ...restaurant },
-        ...restState
-      } = state;
+      console.debug(state.restaurant.id, state.restaurant.restaurantId, payload)
+      const { restaurant = {}, ...restState } = state,
+        { id: restaurantId, reviews, ...restRestaurant } = restaurant
       if (restaurantId !== payload.restaurantId) break;
       return {
         restaurant: {
           restaurantId,
-          ...restaurant,
-          reviews: reviews.filter((item, i) => item.id !== payload.id),
+          ...restRestaurant,
+          reviews: reviews.filter(({ id }) => (id !== payload.id)),
         },
         ...restState,
       };

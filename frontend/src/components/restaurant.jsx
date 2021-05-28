@@ -11,15 +11,13 @@ export default function Restaurant({ id }) {
   const [{ restaurant }, api] = useRealm();
 
   useEffect(() => {
-    api.getRestaurant(id).catch((e) => {
-      console.log(e);
-    });
+    api.getRestaurant(id)
+      .catch((e) => { console.log(e); });
   }, [id, api]);
 
-  const removeReview = (reviewId, index) => {
-    api.deleteReview(reviewId, currentUser.id).catch((e) => {
-      console.log(e);
-    });
+  function removeReview(reviewId){
+    api.deleteReview(reviewId, currentUser.id, id)
+      .catch((e) => { console.log(e); });
   };
 
   if (!restaurant) {
@@ -31,18 +29,17 @@ export default function Restaurant({ id }) {
     );
   }
 
-  const { name, cuisine, address, reviews } = restaurant;
+  const { name, description='[no description]', cuisine, address, reviews } = restaurant;
   return (
     <div>
       <h5>{name}</h5>
-      <p>
+      <p>{description}</p>
         <dl>
           <dt>Cuisine:</dt>
           <dd>{cuisine}</dd>
           <dt>Address:</dt>
           <dd>{`${address.building} ${address.street}, ${address.zipcode}`}</dd>
         </dl>
-      </p>
       <Link to={`/restaurants/${id}/review`} className="btn btn-primary">
         {" "}
         Add Review{" "}
@@ -61,14 +58,14 @@ export default function Restaurant({ id }) {
   );
 
   function reviewToCardMapping(review) {
-    const { id: reviewId, userId, text, userName, date } = review;
+    const { id: reviewId, userId, name: userName, date, text } = review;
 
     return {
       text: (
         <div>
-          {text}
+          <p> {text} </p>
           <dl>
-            <dt>User: </dt>
+            <dt>Reviewer: </dt>
             <dd> {userName} </dd>
             <dt>Date: </dt>
             <dd> {date} </dd>

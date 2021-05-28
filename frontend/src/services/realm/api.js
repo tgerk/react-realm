@@ -25,8 +25,6 @@ function ignoreCancellationError(error) {
 }
 class RealmAPI {
   constructor(dispatch) {
-    console.trace("constructing new RealmAPI");
-
     this.dispatch = dispatch;
     this.realmApp = new Realm.App({ id: process.env.REACT_APP_REALM_APP_ID });
 
@@ -50,6 +48,7 @@ class RealmAPI {
     // each has its own auth scheme, spawned concurrently
 
     if (!this.setHttpRealm) {
+      return;  // for now... once is enough
       this.httpRealm = new Promise((resolve, reject) => {
         this.setHttpRealm = resolve;
       });
@@ -64,11 +63,11 @@ class RealmAPI {
         this.setRealmUser = resolve;
       });
     }
-
-    // this._authSDK(user).then((v) => {
-    //   this.setRealmUser(v);
-    //   delete this.setRealmUser;
-    // });
+    return;  // for now... skip this
+    this._authSDK(user).then((v) => {
+      this.setRealmUser(v);
+      delete this.setRealmUser;
+    });
   }
 
   _authREST(user) {
@@ -107,7 +106,7 @@ class RealmAPI {
     const [p, cancel] = getWithCancel(httpRealm, "cuisines"),
       q = p
         .then(({ data }) =>
-          this.dispatch({ type: actions.GET_CUISINES, payload: data })
+          this.dispatch(actions.GET_CUISINES, data)
         )
         .catch(ignoreCancellationError);
 
@@ -119,14 +118,11 @@ class RealmAPI {
     const httpRealm = await this.httpRealm; // pause until auth is complete
 
     const [p, cancel] = getWithCancel(httpRealm, "restaurants", {
-        params: new URLSearchParams({ page }),
-      }),
+      params: new URLSearchParams({ page }),
+    }),
       q = p
         .then(({ data }) =>
-          this.dispatch({
-            type: actions.GET_RESTAURANTS,
-            payload: data.restaurants,
-          })
+          this.dispatch(actions.GET_RESTAURANTS, data.restaurants)
         )
         .catch(ignoreCancellationError);
 
@@ -138,14 +134,11 @@ class RealmAPI {
     const httpRealm = await this.httpRealm; // pause until auth is complete
 
     const [p, cancel] = getWithCancel(httpRealm, "restaurants", {
-        params: new URLSearchParams({ ...query, page }),
-      }),
+      params: new URLSearchParams({ ...query, page }),
+    }),
       q = p
         .then(({ data }) =>
-          this.dispatch({
-            type: actions.GET_RESTAURANTS,
-            payload: data.restaurants,
-          })
+          this.dispatch(actions.GET_RESTAURANTS, data.restaurants)
         )
         .catch(ignoreCancellationError);
 
@@ -159,7 +152,7 @@ class RealmAPI {
     return httpRealm
       .get("restaurants", { params: new URLSearchParams({ id }) }) // alternative: (await this.realmUser).function.getRestaurant(id)
       .then(({ data }) =>
-        this.dispatch({ type: actions.GET_RESTAURANT, payload: data })
+        this.dispatch(actions.GET_RESTAURANT, data)
       );
   }
 
@@ -167,7 +160,7 @@ class RealmAPI {
     const httpRealm = await this.httpRealm; // pause until auth is complete
 
     return httpRealm.post("reviews", data).then(({ data }) => {
-      this.dispatch({ action: actions.ADD_REVIEW, payload: data });
+      this.dispatch(actions.ADD_REVIEW, data);
     });
   }
 
@@ -175,25 +168,19 @@ class RealmAPI {
     const httpRealm = await this.httpRealm; // pause until auth is complete
 
     return httpRealm
-      .put("reviews", {
-        params: new URLSearchParams({ id, userId }),
-        data,
-      })
+      .put("reviews", data, { params: new URLSearchParams({ id, userId }) })
       .then(({ data }) => {
-        this.dispatch({ action: actions.EDIT_REVIEW, payload: data });
+        this.dispatch(actions.EDIT_REVIEW, data);
       });
   }
 
-  async deleteReview(id, { restaurantId, userId }) {
+  async deleteReview(id, userId, restaurantId) {
     const httpRealm = await this.httpRealm; // pause until auth is complete
 
     return httpRealm
       .delete("reviews", { params: new URLSearchParams({ id, userId }) })
       .then(() => {
-        this.dispatch({
-          action: actions.DELETE_REVIEW,
-          payload: { id, restaurantId },
-        });
+        this.dispatch(actions.DELETE_REVIEW, { id, restaurantId });
       });
   }
 

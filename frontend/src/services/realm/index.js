@@ -8,7 +8,7 @@ const RealmContext = React.createContext([{}, () => {}]); // default value used 
 
 export function RealmContextProvider(props) {
   const [state, dispatch] = useReducer(realmReducer, {});
-  const [api] = useState(() => new RealmAPI(dispatch));
+  const [api] = useState(() => new RealmAPI((type, payload) => dispatch({ type, payload })));
 
   const [currentUser] = useContext(UserContext); // grab user-state changes
   useEffect(() => {

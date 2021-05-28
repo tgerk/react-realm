@@ -1,5 +1,4 @@
 import React, { useState, useContext } from "react";
-import { Link } from "react-router-dom";
 
 import UserContext from "../services/user";
 import { useRealm } from "../services/realm";
@@ -7,42 +6,31 @@ import { useRealm } from "../services/realm";
 export default function Review({
   restaurantId,
   currentReview: { id: reviewId, text: initialText },
+  history
 }) {
   const [currentUser] = useContext(UserContext);
   const [, api] = useRealm();
 
-  const [saved, setSaved] = useState(false);
   const [reviewText, setReview] = useState(initialText);
 
   const saveReview = () => {
     const updateOrCreate = (data) =>
         reviewId ? api.updateReview(reviewId, data) : api.createReview(data),
       review = {
+        restaurantId: restaurantId,
         userId: currentUser.id,
         name: currentUser.name,
-        restaurantId: restaurantId,
         text: reviewText,
       };
 
     updateOrCreate(review)
       .then(() => {
-        setSaved(true);
+        history.goBack();
       })
       .catch((e) => {
         console.log(e);
       });
   };
-
-  if (saved) {
-    return (
-      <div>
-        <h4>Your review has been saved!</h4>
-        <Link to={`/restaurants/${restaurantId}`} className="btn btn-success">
-          Back to Restaurant
-        </Link>
-      </div>
-    );
-  }
 
   if (!currentUser) {
     return <div>Sorry! Only logged-in users can leave reviews.</div>;

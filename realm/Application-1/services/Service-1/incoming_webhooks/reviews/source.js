@@ -38,7 +38,7 @@ async function onPost(payload, response) {
     return;
   }
 
-  const review = await reviews.find({ _id });
+  const review = await reviews.findOne({ _id: insertedId });
 
   response.setStatusCode(201);
   response.setBody(JSON.stringify(transformReview(review)));
@@ -51,7 +51,7 @@ async function onPut(payload, response) {
   }
 
   const _id = BSON.ObjectId(payload.query.id),
-    user_id = BSON.ObjectId(payloasd.query.userId),
+    user_id = payload.query.userId,
     body = EJSON.parse(payload.body.text()),
     updateDoc = {
       $set: {
@@ -75,7 +75,7 @@ async function onPut(payload, response) {
     return;
   }
 
-  const review = await reviews.find({ _id });
+  const review = await reviews.findOne({ _id });
 
   response.setStatusCode(202);
   response.setBody(JSON.stringify(transformReview(review)));
@@ -83,7 +83,7 @@ async function onPut(payload, response) {
 
 async function onDelete(payload, response) {
   const _id = BSON.ObjectId(payload.query.id),
-    user_id = BSON.ObjectId(payloasd.query.userId);
+    user_id = payload.query.userId;
 
   const reviews = context.services
       .get("mongodb-atlas")
