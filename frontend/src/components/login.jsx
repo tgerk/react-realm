@@ -1,11 +1,10 @@
 import React, { useState, useContext, useRef } from "react";
 
-import { Dropdown } from "../presentation"
+import Dropdown from "./presentation/dropdown";
 import UserContext from "../services/user";
 
 export default function Login({ doLogin, focusRef }) {
-
-  const [currentUser, _] = useContext(UserContext);
+  const [currentUser] = useContext(UserContext);
   const [user, setUser] = useState(currentUser || {});
   const { name: userName, id: userId } = user;
 
@@ -49,24 +48,36 @@ export default function Login({ doLogin, focusRef }) {
       </div>
     </div>
   );
-};
-
+}
 
 export function LoginMenuItem() {
-  const [currentUser, setUser] = useContext(UserContext)
+  const [currentUser, setUser] = useContext(UserContext);
   const focusRef = useRef();
 
   if (currentUser) {
     return (
-      <a onClick={() => setUser(null)} className="nav-link" style={{ cursor: 'pointer' }}>
+      <a
+        onClick={() => setUser(null)}
+        className="nav-link"
+        style={{ cursor: "pointer" }}
+      >
         Logout {currentUser.name}
       </a>
-    )
+    );
   }
 
   return (
-    <Dropdown affordanceType="button" affordanceText="Login" focusRef={focusRef} style={{ postion: "relative" }}>
-      <Login doLogin={setUser} style={{ postion: "absolute" }} focusRef={focusRef} />
+    <Dropdown
+      affordanceType="button"
+      affordanceText="Login"
+      focusRef={focusRef}
+      style={{ postion: "relative" }}
+    >
+      <Login
+        doLogin={setUser}
+        style={{ postion: "absolute" }}
+        focusRef={focusRef}
+      />
     </Dropdown>
-  )
+  );
 }

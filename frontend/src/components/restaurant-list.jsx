@@ -1,69 +1,62 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { useDebounce } from "use-debounce"
+import { useDebounce } from "use-debounce";
 
-import { Dropdown, CardGallery } from "../presentation"
-import { getAll as getRestaurants, getCuisines, search as searchRestaurants } from "../services/restaurant";
+import Dropdown from "./presentation/dropdown";
+import CardGallery from "./presentation/card-gallery";
+import { useRealm } from "../services/realm";
+
+const ALL_CUISINES = "All Cuisines";
 
 //TODO: pagination & caching
 export default function RestaurantList() {
-
-  const [restaurants, setRestaurants] = useState([]);
-  const [cuisines, setCuisines] = useState(["All Cuisines"]);
-  const [query, setQuery] = useState({})
-
-  useEffect(() => {
-    return retrieveCuisines()
-  }, []);
-
-  // update on page load and (after a brief delay) on change of search parameters
-  const [debouncedQuery] = useDebounce(query, 800);
-  useEffect(() => {
-    return retrieveRestaurants(debouncedQuery);
-  }, [debouncedQuery]);
-
+  const [{ restaurants = [], cuisines = [] }, api] = useRealm();
+  const [query, setQuery] = useState({});
   const focusRef = useRef();
 
-  const retrieveRestaurants = (query) => {
-    const req = (() => Object.entries(query).length ? searchRestaurants(query) : getRestaurants())()
-    req.then(response => {
-      console.log(response.data);
-      setRestaurants(response.data.restaurants);
-    })
-      .catch(e => {
-        console.log(e);
-      });
+  // debouncing provides automatic and periodic updates according to changing search parameters
+  const [debouncedQuery] = useDebounce(query, 800);
 
-    return req.abort
-  };
+  useEffect(() => {
+    const req = api.getCuisines();
+    req.catch((e) => {
+      console.log(e);
+    });
 
-  const retrieveCuisines = () => {
-    const req = getCuisines()
-    req.then(response => {
-      setCuisines(["All Cuisines"].concat(response.data));
-    })
-      .catch(e => {
-        console.log(e);
-      });
+    return req.cancel;
+  }, [api]);
 
-    return req.abort
-  };
+  useEffect(() => {
+    const req = (() =>
+      Object.entries(debouncedQuery).length
+        ? api.searchRestaurants(debouncedQuery)
+        : api.getRestaurants())();
+    req.catch((e) => {
+      console.log(e);
+    });
+
+    return req.cancel;
+  }, [debouncedQuery, api]);
 
   const updateQuery = (key, value) => {
-    const newQuery = { ...query }
-    if (key === "cuisine" && (value === "All Cuisines" || !value)) {
-      // choosing "All Cuisines" erases the cuisine key from the query
-      delete newQuery[key]
-      setQuery(newQuery)
-      return
+    if (value === "" || (key === "cuisine" && value === ALL_CUISINES)) {
+      // erase key from the query
+      const newQuery = { ...query };
+      delete newQuery[key];
+      setQuery(newQuery);
+    } else {
+      setQuery({ ...query, [key]: value });
     }
-
-    setQuery({ ...query, [key]: value })
-  }
+  };
 
   return (
-    <div>
-      <Dropdown affordanceType="button" affordanceText="Search" focusRef={focusRef}>
+    <div className="restaurants-list">
+      <Dropdown
+        affordanceType="button"
+        affordanceText="Search"
+        focusRef={focusRef}
+        className="restaurants-search"
+      >
         <div className="row pb-1">
           <div className="input-group col-lg-4">
             <input
@@ -71,7 +64,9 @@ export default function RestaurantList() {
               className="form-control"
               placeholder="Text search (name or street)"
               value={query.name}
-              onChange={({ target: { value } }) => { updateQuery("text", value) }}
+              onChange={({ target: { value } }) => {
+                updateQuery("text", value);
+              }}
               ref={focusRef}
             />
           </div>
@@ -81,13 +76,24 @@ export default function RestaurantList() {
               className="form-control"
               placeholder="Search by zip"
               value={query.zipcode}
-              onChange={({ target: { value } }) => { updateQuery("zipcode", value) }}
+              onChange={({ target: { value } }) => {
+                updateQuery("zipcode", value);
+              }}
             />
           </div>
           <div className="input-group col-lg-4">
-            <select onChange={({ target: { value } }) => { updateQuery("cuisine", value) }}>
-              {cuisines.map(cuisine => (
-                <option value={cuisine}> {cuisine.substr(0, 20)} </option>
+            <select
+              onChange={({ target: { value } }) => {
+                updateQuery("cuisine", value);
+              }}
+            >
+              <option value={ALL_CUISINES}> {ALL_CUISINES} </option>
+              {cuisines.map((cuisine, key) => (
+                <option value={cuisine} key={key}>
+                  {" "}
+                  {cuisine.substr(0, 20)}
+                  {" "}
+                </option>
               ))}
             </select>
           </div>
@@ -97,24 +103,31 @@ export default function RestaurantList() {
       <CardGallery items={restaurants.map(restaurantToCardMapping)} />
     </div>
   );
-};
+}
 
-function restaurantToCardMapping({ _id: id, name, cuisine, address }) {
+function restaurantToCardMapping({ id, name, cuisine, address }) {
   address = `${address.building} ${address.street}, ${address.zipcode}`;
 
-  return ({
+  return {
     title: name,
-    text: (<ul style={{ listStyle: "none" }}>
-      <li>
-        <strong>Cuisine: </strong>{cuisine}
-      </li>
-      <li>
-        <strong>Address: </strong>{address}
-      </li>
-    </ul>),
+    text: (
+      <dl>
+        <dt>Cuisine:</dt>
+        <dd>{cuisine}</dd>
+        <dt>Address:</dt>
+        <dd>{address}</dd>
+      </dl>
+    ),
     buttons: [
-      <Link to={`/restaurants/${id}`}> View Reviews </Link>,
-      <a target="_blank" rel="noreferrer" href={`https://www.google.com/maps/place/${address}`}> View Map </a>
-    ]
-  })
+      <Link to={`/restaurants/${id}`}> See Reviews </Link>,
+      <a
+        href={`https://www.google.com/maps/place/${address}`}
+        target="_blank"
+        rel="noreferrer"
+      >
+        {" "}
+        View Map{" "}
+      </a>,
+    ],
+  };
 }
