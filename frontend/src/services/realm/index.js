@@ -8,7 +8,9 @@ const RealmContext = React.createContext([{}, () => {}]); // default value used 
 
 export function RealmContextProvider(props) {
   const [state, dispatch] = useReducer(realmReducer, {});
-  const [api] = useState(() => new RealmAPI((type, payload) => dispatch({ type, payload })));
+  const [api] = useState(
+    () => new RealmAPI((type, payload) => dispatch({ type, payload }))
+  );
 
   const [currentUser] = useContext(UserContext); // grab user-state changes
   useEffect(() => {
@@ -21,6 +23,14 @@ export function RealmContextProvider(props) {
 
 export function useRealm() {
   return useContext(RealmContext);
+}
+
+export function useDebouncedEffect(fn, dependencies, interval = 400) {
+  useEffect(() => {
+    const timer = setTimeout(fn, interval);
+
+    return () => clearTimeout(timer);
+  }, dependencies); // eslint-disable-line
 }
 
 export default RealmContext;

@@ -13,49 +13,48 @@ export default function realmReducer(state, { type, payload = {} }) {
       return { ...state, restaurant: payload };
 
     case actions.ADD_REVIEW: {
-      console.debug(state.restaurant.id, state.restaurant.restaurantId, payload)
-      const { restaurant = {}, ...restState } = state,
-        { id: restaurantId, reviews, ...restRestaurant } = restaurant
-      if (restaurantId !== payload.restaurantId) break;
+      const { restaurant: { reviews, ...restaurant } = {} } = state;
+      if (restaurant.id !== payload.restaurantId) break;
       return {
+        ...state,
+        inFlight: state.inFlight + 1,
         restaurant: {
-          restaurantId,
-          ...restRestaurant,
-          reviews: [...reviews, payload],
+          ...restaurant,
+          reviews: [payload, ...reviews],
         },
-        ...restState,
       };
     }
 
     case actions.EDIT_REVIEW: {
-      console.debug(state.restaurant.id, state.restaurant.restaurantId, payload)
-      const { restaurant = {}, ...restState } = state,
-        { id: restaurantId, reviews, ...restRestaurant } = restaurant
-      if (restaurantId !== payload.restaurantId) break;
+      const { restaurant: { reviews, ...restaurant } = {} } = state;
+      if (restaurant.id !== payload.restaurantId) break;
       return {
+        ...state,
+        inFlight: state.inFlight + 1,
         restaurant: {
-          restaurantId,
-          ...restRestaurant,
-          reviews: reviews.map((item) =>
-            item.id === payload.id ? payload : item
-          ),
+          ...restaurant,
+          reviews: [payload, ...reviews.filter(({ id }) => id !== payload.id)],
         },
-        ...restState,
       };
     }
 
     case actions.DELETE_REVIEW: {
-      console.debug(state.restaurant.id, state.restaurant.restaurantId, payload)
-      const { restaurant = {}, ...restState } = state,
-        { id: restaurantId, reviews, ...restRestaurant } = restaurant
-      if (restaurantId !== payload.restaurantId) break;
+      const { restaurant: { reviews, ...restaurant } = {} } = state;
+      if (restaurant.id !== payload.restaurantId) break;
       return {
+        ...state,
+        inFlight: state.inFlight + 1,
         restaurant: {
-          restaurantId,
-          ...restRestaurant,
-          reviews: reviews.filter(({ id }) => (id !== payload.id)),
+          ...restaurant,
+          reviews: reviews.filter(({ id }) => id !== payload.id),
         },
-        ...restState,
+      };
+    }
+
+    case actions.IN_FLIGHT_COMPLETE: {
+      return {
+        ...state,
+        inFlight: state.inFlight - 1,
       };
     }
   }

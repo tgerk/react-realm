@@ -1,0 +1,113 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+nav {
+  // navbar navbar-expand navbar-dark bg-dark
+
+  :first-child {
+    // navbar-brand
+  }
+
+  ul {
+    // navbar-nav mr-auto
+
+    li {
+      // nav-item
+
+      a {
+        // nav-link
+      }
+
+      button {
+        // btn btn-success
+      }
+    }
+  }
+}
+
+main {
+  // container mt-3
+}
+
+.gallery {
+  // row
+
+  > * {
+    // col-lg-2 col-md-4 col-sm-6 pb-1
+  }
+}
+
+article {
+  // card card-body
+
+  h1 {
+    // card-title
+  }
+
+  section {
+    // card-text
+  }
+
+  aside {
+    // row
+
+    button {
+      // btn btn-primary col-lg-5 mx-1 mb-1
+    }
+  }
+}
+
+.restaurants-search {
+  // row pb-1
+
+  > * {
+    // input-group col-lg-4
+  }
+
+  input {
+    // form-control
+  }
+
+  option {
+    max-width: 20em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.login,
+.logout,
+.review {
+  // submit-form
+
+  > div {
+    // form-group
+  }
+
+  input {
+    // form-control
+  }
+
+  button {
+    // btn btn-success
+  }
+}
+
+.loading {
+  padding-top: 4em;
+  font-style: italic;
+  font-size: larger;
+  opacity: 80%;
+  // animate?!
+}

@@ -1,12 +1,10 @@
 import React from "react";
 import { Switch, Route, Link } from "react-router-dom";
 
-import "bootstrap/dist/css/bootstrap.min.css";
-
-import RestaurantList from "./restaurant-list";
+import RestaurantList from "./restaurant/List";
 import Restaurant from "./restaurant";
-import Review from "./review";
-import { LoginMenuItem } from "./login";
+import Review from "./restaurant/review";
+import UserLogin from "./Login";
 
 import { UserContextProvider } from "../services/user";
 import { RealmContextProvider } from "../services/realm";
@@ -14,27 +12,23 @@ import { RealmContextProvider } from "../services/realm";
 export default function App() {
   return (
     <UserContextProvider>
-      <RealmContextProvider>
-        <nav className="navbar navbar-expand navbar-dark bg-dark">
-          <a href="/restaurants" className="navbar-brand">
-            Restaurant Reviews
-          </a>
-          <div className="navbar-nav mr-auto">
-            <li className="nav-item">
-              <Link to={"/restaurants"} className="nav-link">
-                Restaurants
-              </Link>
-            </li>
-            <li className="nav-item">
-              <LoginMenuItem />
-            </li>
-          </div>
-        </nav>
+      <nav>
+        <a href="/"> Restaurant Reviews </a>
+        <ul>
+          <li>
+            <Link to={"/restaurants"}> Restaurants </Link>
+          </li>
+          <li>
+            <UserLogin />
+          </li>
+        </ul>
+      </nav>
 
-        <div className="container mt-3">
+      <RealmContextProvider>
+        <main>
           <Switch>
             <Route
-              path="/restaurants/:id/review"
+              path="/restaurant/:id/review"
               render={(props) => {
                 return (
                   <Review
@@ -47,15 +41,15 @@ export default function App() {
             />
 
             <Route
-              path="/restaurants/:id"
+              path="/restaurant/:id"
               render={(props) => {
                 return <Restaurant {...props} id={props.match.params.id} />;
               }}
             />
 
-            <Route path={["/", "/restaurants"]} component={RestaurantList} />
+            <Route component={RestaurantList} />
           </Switch>
-        </div>
+        </main>
       </RealmContextProvider>
     </UserContextProvider>
   );

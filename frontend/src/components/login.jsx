@@ -1,65 +1,79 @@
 import React, { useState, useContext, useRef } from "react";
 
-import Dropdown from "./presentation/dropdown";
+import Dropdown from "./Dropdown";
 import UserContext from "../services/user";
 
-export default function Login({ doLogin, focusRef }) {
-  const [currentUser] = useContext(UserContext);
-  const [user, setUser] = useState(currentUser || {});
-  const { name: userName, id: userId } = user;
+export function Login({ focusRef }) {
+  const [currentUser, setCurrentUser] = useContext(UserContext),
+    [user, setUser] = useState(currentUser || {}),
+    { userName, userId } = user;
 
   const updateUser = ({ target: { name, value } }) => {
     setUser({ ...user, [name]: value });
   };
 
+  function handleLogin(event) {
+    event.preventDefault();
+    setCurrentUser(user);
+  }
+
   return (
-    <div className="submit-form">
+    <form className="login" onSubmit={handleLogin}>
       <div>
-        <div className="form-group">
-          <label htmlFor="user">Username</label>
-          <input
-            type="text"
-            className="form-control"
-            id="name"
-            required
-            value={userName}
-            onChange={updateUser}
-            name="name"
-            ref={focusRef}
-          />
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="id">ID</label>
-          <input
-            type="text"
-            className="form-control"
-            id="id"
-            required
-            value={userId}
-            onChange={updateUser}
-            name="id"
-          />
-        </div>
-
-        <button onClick={() => doLogin(user)} className="btn btn-success">
-          Login
-        </button>
+        <label htmlFor="user">Username</label>
+        <input
+          id="name"
+          name="name"
+          type="text"
+          value={userName}
+          onChange={updateUser}
+          required
+          ref={focusRef}
+        />
       </div>
-    </div>
+
+      <div>
+        <label htmlFor="id">ID</label>
+        <input
+          id="id"
+          name="id"
+          type="text"
+          value={userId}
+          onChange={updateUser}
+          required
+        />
+      </div>
+
+      <button name="submit" onClick={handleLogin}>
+        Login
+      </button>
+    </form>
   );
 }
 
-export function LoginMenuItem() {
-  const [currentUser, setUser] = useContext(UserContext);
-  const focusRef = useRef();
+export function Logout() {
+  const [currentUser, setCurrentUser] = useContext(UserContext);
 
-  if (currentUser) {
-    return (
-      <button onClick={() => setUser(null)} className="btn btn-success">
+  function handleLogout(event) {
+    event.preventDefault();
+    setCurrentUser(null);
+  }
+
+  return (
+    <form className="logout" onSubmit={handleLogout}>
+      <button name="submit" onClick={handleLogout}>
         Logout {currentUser.name}
       </button>
-    );
+    </form>
+  );
+}
+
+export default function UserLogin() {
+  const [currentUser] = useContext(UserContext),
+    focusRef = useRef();
+
+  if (currentUser) {
+    return <Logout />;
   }
 
   return (
@@ -69,11 +83,7 @@ export function LoginMenuItem() {
       focusRef={focusRef}
       style={{ postion: "relative" }}
     >
-      <Login
-        doLogin={setUser}
-        style={{ postion: "absolute" }}
-        focusRef={focusRef}
-      />
+      <Login style={{ postion: "absolute" }} focusRef={focusRef} />
     </Dropdown>
   );
 }

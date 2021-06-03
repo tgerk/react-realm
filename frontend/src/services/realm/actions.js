@@ -5,6 +5,7 @@ const actions = {
   ADD_REVIEW: "add review",
   EDIT_REVIEW: "edit review",
   DELETE_REVIEW: "delete review",
+  IN_FLIGHT_COMPLETE: "query resolved",
 };
 
 export default actions;
