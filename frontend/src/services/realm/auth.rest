@@ -1,2 +1,0 @@
-POST https://us-west-2.aws.realm.mongodb.com/api/client/v2.0/app/application-1-sdtbu/auth/providers/anon-user/login
-Content-Type: application/json'

@@ -1,10 +1,10 @@
 import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 
-import Gallery from "./Gallery";
-import { useRealm } from "../services/realm";
+import Gallery from "Gallery";
+import ReviewCard from "restaurant/review/Card";
 
-import ReviewCard from "./restaurant/review/Card";
+import { useRealm } from "services/realm";
 
 export default function Restaurant({ id }) {
   const [

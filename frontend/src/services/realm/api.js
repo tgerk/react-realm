@@ -1,8 +1,9 @@
 import axios from "axios";
 import * as Realm from "realm-web";
-import "../storage-json";
 
-import actions from "./actions";
+import "services/storage-json";
+
+import { actions } from "./reducer";
 
 const SESSION_REALM_TOKENS_KEY = "realmTokens";
 

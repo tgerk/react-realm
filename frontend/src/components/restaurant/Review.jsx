@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 
-import UserContext from "../../services/user";
-import { useRealm } from "../../services/realm";
+import { UserContext } from "services/user";
+import { useRealm } from "services/realm";
 
 export default function Review({
   restaurantId,

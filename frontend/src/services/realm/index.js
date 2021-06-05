@@ -1,13 +1,13 @@
 import React, { useContext, useEffect, useReducer, useState } from "react";
 
-import UserContext from "../user";
-import actions from "./actions";
+import { UserContext } from "services/user";
+
+import realmReducer, { actions } from "./reducer";
 import RealmAPI from "./api";
-import realmReducer from "./reducer";
 
-const RealmContext = React.createContext([{}, () => {}]); // default value used when there is *no* provider in component tree
+const RealmContext = React.createContext([{}, () => {}]);
 
-export function RealmContextProvider(props) {
+export default function RealmContextProvider(props) {
   // not simple, but fairly straightforward:
   // first create a reducer to manage internal state, get a dispatch method
   // second create an API gateway instance that dispatches state transitions to the reducer
@@ -45,5 +45,3 @@ export function useDebouncedEffect(fn, minInterval = 400, dependencies) {
       (cleanup instanceof Function ? cleanup() : clearTimeout(cleanup));
   }, dependencies); // eslint-disable-line
 }
-
-export default RealmContext;

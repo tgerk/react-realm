@@ -1,9 +1,11 @@
 import React, { useContext } from "react";
 import { Link } from "react-router-dom";
+import relativeDate from "relative-date";
 
-import Card from "../../Card";
-import UserContext from "../../../services/user";
-import { useRealm } from "../../../services/realm";
+import Card from "Card";
+
+import { UserContext } from "services/user";
+import { useRealm } from "services/realm";
 
 export default function ReviewCard({ restaurantId, ...review }) {
   const { id: reviewId, userId, name: userName, date, text } = review,
@@ -36,8 +38,8 @@ export default function ReviewCard({ restaurantId, ...review }) {
   return (
     <Card
       title={userName}
-      subtitle={date}
-      text={<p> {text} </p>}
+      subtitle={relativeDate(date)}
+      text={<p>{text}</p>}
       actions={actions}
     />
   );

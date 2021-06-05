@@ -1,4 +1,19 @@
-import actions from "./actions";
+// this module defines both the shape of the state variable and the permissible transitions
+// https://orgler.medium.com/dont-use-redux-9e23b5381291 has an interesting near-rant on the
+//  dumb over-complication of react-redux done "right"
+// I suggest, as complexity increases, separating concerns among several contexts+reducers.
+//  Alternatively, compose a reducer from smaller sub-sections of the context-state object
+export const actions = {
+  CHANGE_USER: "changing user",
+  GET_RESTAURANTS: "get restaurants",
+  GET_RESTAURANT: "get restaurant",
+  GET_CUISINES: "get cuisines",
+  ADD_REVIEW: "add review",
+  EDIT_REVIEW: "edit review",
+  DELETE_REVIEW: "delete review",
+  IN_FLIGHT_BEGIN: "query in-progress",
+  IN_FLIGHT_COMPLETE: "query resolved",
+};
 
 export default function realmReducer(state, { type, payload = {} }) {
   switch (type) {

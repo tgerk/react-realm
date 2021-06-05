@@ -1,13 +1,13 @@
 import React from "react";
 import { Switch, Route, Link } from "react-router-dom";
 
-import RestaurantList from "./restaurant/List";
-import Restaurant from "./Restaurant";
-import Review from "./restaurant/Review";
-import UserLogin from "./Login";
+import UserLogin from "Login";
+import Restaurant from "Restaurant";
+import RestaurantList from "restaurant/List";
+import Review from "restaurant/Review";
 
-import { UserContextProvider } from "../services/user";
-import { RealmContextProvider } from "../services/realm";
+import UserContextProvider from "services/user";
+import RealmContextProvider from "services/realm";
 
 export default function App() {
   return (

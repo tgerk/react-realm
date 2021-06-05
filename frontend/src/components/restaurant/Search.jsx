@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 
-import Bubble from "../Bubble";
-import { useRealm } from "../../services/realm";
-import { useDebouncedEffect } from "../../services/realm";
+import Bubble from "Bubble";
+
+import { useRealm, useDebouncedEffect } from "services/realm";
 
 const ALL_CUISINES = "All Cuisines";
 

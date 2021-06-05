@@ -1,7 +1,8 @@
 import React, { useState, useContext, useRef } from "react";
 
-import Bubble from "./Bubble";
-import UserContext from "../services/user";
+import Bubble from "Bubble";
+
+import { UserContext } from "services/user";
 
 export function Login({ focusRef }) {
   const [currentUser, setCurrentUser] = useContext(UserContext),

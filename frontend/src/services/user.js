@@ -2,9 +2,9 @@ import React, { useState } from "react";
 
 const SESSION_CURRENT_USER_KEY = "currentUser";
 
-const UserContext = React.createContext([null, () => {}]); // default value used when there is *no* provider in component tree
+export const UserContext = React.createContext([null, () => {}]);
 
-export function UserContextProvider(props) {
+export default function UserContextProvider(props) {
   const [user, setUser] = useState(
     sessionStorage.getJSONItem(SESSION_CURRENT_USER_KEY, null)
   ); // components access current user through context
@@ -21,5 +21,3 @@ export function UserContextProvider(props) {
 
   return <UserContext.Provider value={[user, setCurrentUser]} {...props} />;
 }
-
-export default UserContext;

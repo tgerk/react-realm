@@ -1,10 +1,10 @@
 import React from "react";
 
-import Gallery from "../Gallery";
-import { useRealm } from "../../services/realm";
+import Gallery from "Gallery";
+import Search from "restaurant/Search";
+import RestaurantCard from "restaurant/Card";
 
-import Search from "./Search";
-import RestaurantCard from "./Card";
+import { useRealm } from "services/realm";
 
 //TODO: caching
 export default function RestaurantList({ location: { search } }) {
