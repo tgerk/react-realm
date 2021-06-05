@@ -4,7 +4,7 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "start": "npx --no-install nodemon -r dotenv/config server.js",
+    "start": "echo \"obsolete/deprecated by transition to MongoDB Realm webhooks\"; npx --no-install nodemon -r dotenv/config server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
