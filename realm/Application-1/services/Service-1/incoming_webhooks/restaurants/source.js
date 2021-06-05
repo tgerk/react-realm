@@ -1,3 +1,7 @@
+const defaults = {
+  pageSize: 20,
+};
+
 exports = async function (payload, response) {
   if ("id" in payload.query) {
     // adopt the strategy that each logical collection (in the RESTful web-resource sense) has a single webhook
@@ -20,46 +24,56 @@ exports = async function (payload, response) {
   ];
 
   const limit = // results per page
-      parseInt(payload.query.limit) ||
-      parseInt(payload.query.restaurantsPerPage) ||
-      20,
+    parseInt(payload.query.limit) ||
+    parseInt(payload.query.size) ||
+    defaults.pageSize,
     skip = // index of first result
-      parseInt(payload.query.skip) || parseInt(payload.query.page) * limit || 0;
+      Math.max(
+        parseInt(payload.query.skip) ||
+        (parseInt(payload.query.page) - 1) * limit ||
+        0,
+        0
+      );
 
-  const query = {},
-    filters = {};
+  const filter = {},
+    query = {};
   if (payload.query.cuisine) {
-    filters.cuisine = payload.query.cuisine;
-    query.cuisine = { $eq: payload.query.cuisine };
+    filter.cuisine = { $eq: payload.query.cuisine };
+    query.cuisine = payload.query.cuisine;
   }
   if (payload.query.zipcode) {
-    filters.zipcode = payload.query.zipcode;
-    query["address.zipcode"] = { $eq: payload.query.zipcode };
+    filter["address.zipcode"] = { $eq: payload.query.zipcode };
+    query.zipcode = payload.query.zipcode;
   }
   if (payload.query.text) {
-    filters.text = payload.query.text;
-    query.$text = { $search: payload.query.text };
+    filter.$text = { $search: payload.query.text };
+    query.text = payload.query.text;
   }
 
   const restaurants = context.services
-      .get("mongodb-atlas")
-      .db("sample_restaurants")
-      .collection("restaurants"),
-    search = pipeline(query, skip, limit),
+    .get("mongodb-atlas")
+    .db("sample_restaurants")
+    .collection("restaurants"),
+    search = pipeline(filter, skip, limit),
     {
       count: [{ count }],
       page,
-    } = await restaurants.aggregate(search).next();
+    } = await restaurants.aggregate(search).next(),
+    result = {
+      count,
+      restaurants: page.map(outputTransformRestaurant),
+    };
+
+  if (skip % limit) {
+    result.skip = skip;
+    result.nav = navLinks(count, skip, limit, query);
+  } else {
+    result.page = 1 + skip / limit;
+    result.nav = pageLinks(count, result.page, limit, query);
+  }
 
   response.setStatusCode(200);
-  response.setBody(
-    JSON.stringify({
-      count,
-      search,
-      restaurants: page.map(transformRestaurant),
-      nav: navLinks(count, skip, limit, filters),
-    })
-  );
+  response.setBody(JSON.stringify(result));
 };
 
 async function getOne(payload, response) {
@@ -101,27 +115,38 @@ async function getOne(payload, response) {
 
   //TODO: handle uncaught exceptions, error cases 400: invalid id, 404: NOT FOUND
   const restaurants = context.services
-      .get("mongodb-atlas")
-      .db("sample_restaurants")
-      .collection("restaurants"),
-    restaurant = await restaurants.aggregate(pipeline(payload.query.id)).next();
+    .get("mongodb-atlas")
+    .db("sample_restaurants")
+    .collection("restaurants"),
+    restaurant = await restaurants.aggregate(pipeline(payload.query.id)).next(),
+    result = outputTransformRestaurantWithReviews(restaurant);
 
   response.setStatusCode(200);
-  response.setBody(JSON.stringify(transformRestaurantWithReviews(restaurant)));
+  response.setBody(JSON.stringify(result));
 }
 
-const transformRestaurant = ({ _id, ...rest }) => ({
+const outputTransformRestaurant = ({ _id, ...rest }) => ({
   id: _id.toString(),
   ...rest,
 });
 
-const transformRestaurantWithReviews = ({ _id, reviews = [], ...rest }) => ({
+const outputTransformRestaurantWithReviews = ({
+  _id,
+  reviews = [],
+  ...rest
+}) => ({
   id: _id.toString(),
   ...rest,
-  reviews: reviews.map(transformReview),
+  reviews: reviews.map(outputTransformReview),
 });
 
-const transformReview = ({ _id, restaurant_id, user_id, date, ...rest }) => ({
+const outputTransformReview = ({
+  _id,
+  restaurant_id,
+  user_id,
+  date,
+  ...rest
+}) => ({
   id: _id.toString(),
   restaurantId: restaurant_id.toString(),
   userId: user_id,
@@ -129,41 +154,59 @@ const transformReview = ({ _id, restaurant_id, user_id, date, ...rest }) => ({
   ...rest,
 });
 
-const navLinks = (total, offset = 0, limit = 20, otherParams = {}) => {
+const pageLinks = (total, page, size, query = {}) => {
   const nav = {};
 
-  if (offset > 0) {
-    nav.first = String(new URLSearchParams({ ...otherParams, limit }));
+  if (size !== defaults.pageSize) {
+    query.size = size;
+  }
 
-    if (offset >= limit) {
-      nav.prev = String(
-        new URLSearchParams({
-          ...otherParams,
-          offset: max(offset - limit, 0),
-          limit,
-        })
-      );
+  if (page > 1) {
+    nav.first = `?${new URLSearchParams({ ...query, page: 0 })}`;
+
+    if (page > 2) {
+      nav.prev = `?${new URLSearchParams({ ...query, page: page - 1 })}`;
     }
   }
 
-  if (offset + limit < total) {
-    if (offset + limit < total - limit) {
-      nav.next = String(
-        new URLSearchParams({
-          ...otherParams,
-          offset: offset + limit,
-          limit,
-        })
-      );
+  if ((page - 1) * size < total) {
+    if ((page - 1) * size < total - size) {
+      nav.next = `?${new URLSearchParams({ ...query, page: page + 1 })}`;
     }
 
-    nav.last = String(
-      new URLSearchParams({
-        ...otherParams,
-        offset: limit * Math.floor(total / limit),
-        limit,
-      })
-    );
+    nav.last = `?${new URLSearchParams({
+      ...query,
+      page: 1 + Math.floor(total / size),
+    })}`;
+  }
+
+  return nav;
+};
+
+const navLinks = (total, skip, limit, query = {}) => {
+  const nav = {};
+
+  if (limit !== defaults.pageSize) {
+    query.limit = limit;
+  }
+
+  if (skip > 0) {
+    nav.first = `?${new URLSearchParams({ ...query })}`;
+
+    if (skip > limit) {
+      nav.prev = `?${new URLSearchParams({ ...query, skip: skip - limit })}`;
+    }
+  }
+
+  if (skip + limit < total) {
+    if (skip + limit < total - limit) {
+      nav.next = `?${new URLSearchParams({ ...query, skip: skip + limit })}`;
+    }
+
+    nav.last = `?${new URLSearchParams({
+      ...query,
+      skip: skip + Math.floor((total - skip) / limit) * limit,
+    })}`;
   }
 
   return nav;

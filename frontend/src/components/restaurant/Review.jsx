@@ -1,11 +1,11 @@
 import React, { useState, useContext } from "react";
 
-import UserContext from "../../../services/user";
-import { useRealm } from "../../../services/realm";
+import UserContext from "../../services/user";
+import { useRealm } from "../../services/realm";
 
 export default function Review({
   restaurantId,
-  currentReview: { id: reviewId, text: initialText } = {},
+  review: { id: reviewId, text: initialText } = {},
   history,
 }) {
   const [reviewText, setReviewText] = useState(initialText),
@@ -29,7 +29,9 @@ export default function Review({
   }
 
   if (!currentUser) {
-    return <div>Sorry! Only logged-in users can leave reviews.</div>;
+    return (
+      <p className="loading">Sorry! Only logged-in users can leave reviews.</p>
+    );
   }
 
   return (

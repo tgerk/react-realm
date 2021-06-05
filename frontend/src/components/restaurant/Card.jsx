@@ -4,19 +4,15 @@ import { Link } from "react-router-dom";
 import Card from "../Card";
 
 export default function RestaurantCard({
-  item: {
-    id: restaurantId,
-    name,
-    cuisine,
-    address: { building, street, zipcode } = {},
-  } = {},
-  ...props
+  id: restaurantId,
+  name,
+  cuisine,
+  address: { building, street, zipcode } = {},
 }) {
   const address = `${building} ${street}, ${zipcode}`;
 
   return (
     <Card
-      {...props}
       title={name}
       text={
         <dl>
@@ -26,7 +22,7 @@ export default function RestaurantCard({
           <dd>{address}</dd>
         </dl>
       }
-      buttons={[
+      actions={[
         <Link to={`/restaurant/${restaurantId}`}> See Reviews </Link>,
         <a
           href={`https://www.google.com/maps/place/${address}`}

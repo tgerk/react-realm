@@ -1,6 +1,6 @@
 import React, { useState, useContext, useRef } from "react";
 
-import Dropdown from "./Dropdown";
+import Bubble from "./Bubble";
 import UserContext from "../services/user";
 
 export function Login({ focusRef }) {
@@ -27,8 +27,8 @@ export function Login({ focusRef }) {
           type="text"
           value={userName}
           onChange={updateUser}
-          required
           ref={focusRef}
+          required
         />
       </div>
 
@@ -77,13 +77,8 @@ export default function UserLogin() {
   }
 
   return (
-    <Dropdown
-      affordanceType="button"
-      affordanceText="Login"
-      focusRef={focusRef}
-      style={{ postion: "relative" }}
-    >
-      <Login style={{ postion: "absolute" }} focusRef={focusRef} />
-    </Dropdown>
+    <Bubble affordance={<button>Login</button>} focusRef={focusRef}>
+      <Login focusRef={focusRef} />
+    </Bubble>
   );
 }

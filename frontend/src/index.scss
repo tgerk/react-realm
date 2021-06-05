@@ -43,23 +43,49 @@ main {
 .gallery {
   // row
 
-  > * {
+  &-nav {
+    // fix this as a bar at the top of the gallery
+    .page::before {
+      content: "Page";
+    }
+
+    .total::after {
+      content: "total";
+    }
+
+    .prevPage,
+    .nextPage {
+      // set content icons and size
+    }
+  }
+
+  > .card {
     // col-lg-2 col-md-4 col-sm-6 pb-1
   }
 }
 
-article {
+article.card {
   // card card-body
 
-  h1 {
+  > h1 {
     // card-title
   }
 
-  section {
-    // card-text
+  > h2 {
+    // (sub-title)
   }
 
-  aside {
+  > section {
+    // card-text
+
+    h2,
+    h3,
+    h4,
+    h5 {
+    }
+  }
+
+  > aside {
     // row
 
     button {
@@ -68,7 +94,7 @@ article {
   }
 }
 
-.restaurants-search {
+.search {
   // row pb-1
 
   > * {
@@ -86,9 +112,9 @@ article {
   }
 }
 
-.login,
-.logout,
-.review {
+form.login,
+form.logout,
+form.review {
   // submit-form
 
   > div {
@@ -101,6 +127,14 @@ article {
 
   button {
     // btn btn-success
+  }
+}
+
+div.dropdown {
+  position: relative;
+
+  > div.dropdown {
+    position: absolute;
   }
 }
 

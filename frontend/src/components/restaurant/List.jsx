@@ -1,21 +1,40 @@
 import React from "react";
 
-import Search from "./Search";
-import RestaurantCard from "./Card";
 import Gallery from "../Gallery";
-
 import { useRealm } from "../../services/realm";
 
-//TODO: pagination & caching
-export default function RestaurantList() {
-  const [{ restaurants = [] }] = useRealm();
+import Search from "./Search";
+import RestaurantCard from "./Card";
+
+//TODO: caching
+export default function RestaurantList({ location: { search } }) {
+  const [
+    {
+      restaurants: {
+        query,
+        restaurants = [],
+        count: total,
+        nav: links,
+        ...data
+      } = {},
+    },
+  ] = useRealm();
 
   return (
     <div className="restaurants-list">
-      <Search />
+      <Search
+        query={{
+          ...query,
+          ...Object.fromEntries(new URLSearchParams(search).entries()),
+        }}
+      />
 
       {restaurants.length ? (
-        <Gallery component={RestaurantCard} items={restaurants} />
+        <Gallery {...{ total, ...links, ...data }}>
+          {restaurants.map((restaurant, i) => (
+            <RestaurantCard {...restaurant} key={i} />
+          ))}
+        </Gallery>
       ) : (
         <p className="loading">Loading...</p>
       )}

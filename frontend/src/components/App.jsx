@@ -2,8 +2,8 @@ import React from "react";
 import { Switch, Route, Link } from "react-router-dom";
 
 import RestaurantList from "./restaurant/List";
-import Restaurant from "./restaurant";
-import Review from "./restaurant/review";
+import Restaurant from "./Restaurant";
+import Review from "./restaurant/Review";
 import UserLogin from "./Login";
 
 import { UserContextProvider } from "../services/user";
@@ -29,22 +29,20 @@ export default function App() {
           <Switch>
             <Route
               path="/restaurant/:id/review"
-              render={(props) => {
-                return (
-                  <Review
-                    {...props}
-                    restaurantId={props.match.params.id}
-                    currentReview={props.location.state?.currentReview || {}}
-                  />
-                );
-              }}
+              render={(props) => (
+                <Review
+                  {...props}
+                  restaurantId={props.match.params.id}
+                  currentReview={props.location.state?.review || {}}
+                />
+              )}
             />
 
             <Route
               path="/restaurant/:id"
-              render={(props) => {
-                return <Restaurant {...props} id={props.match.params.id} />;
-              }}
+              render={(props) => (
+                <Restaurant {...props} id={props.match.params.id} />
+              )}
             />
 
             <Route component={RestaurantList} />

@@ -2,55 +2,43 @@ import React, { useContext } from "react";
 import { Link } from "react-router-dom";
 
 import Card from "../../Card";
-
 import UserContext from "../../../services/user";
 import { useRealm } from "../../../services/realm";
 
-export default function ReviewCard({
-  restaurantId,
-  item: review = {},
-  ...props
-}) {
+export default function ReviewCard({ restaurantId, ...review }) {
   const { id: reviewId, userId, name: userName, date, text } = review,
     [currentUser] = useContext(UserContext),
     [, api] = useRealm();
 
   function removeReview() {
-    api.deleteReview(reviewId, currentUser.id, restaurantId).catch((e) => {
+    api.deleteReview(reviewId, userId, restaurantId).catch((e) => {
       console.log(e);
     });
   }
 
+  const actions = [];
+  if (currentUser?.id === userId && reviewId) {
+    // possible the review is local only (optimistic update) and does not yet have an id
+    actions.push(
+      <button onClick={removeReview}> Remove </button>,
+      <Link
+        to={{
+          pathname: `/restaurant/${restaurantId}/review`,
+          state: { review },
+        }}
+      >
+        {" "}
+        Edit{" "}
+      </Link>
+    );
+  }
+
   return (
     <Card
-      {...props}
-      text={
-        <div>
-          <p> {text} </p>
-          <dl>
-            <dt>Reviewer: </dt>
-            <dd> {userName} </dd>
-            <dt>Date: </dt>
-            <dd> {date} </dd>
-          </dl>
-        </div>
-      }
-      buttons={
-        currentUser?.id === userId
-          ? [
-              <button onClick={removeReview}> Remove </button>,
-              <Link
-                to={{
-                  pathname: `/restaurant/${restaurantId}/review`,
-                  state: { currentReview: review },
-                }}
-              >
-                {" "}
-                Edit{" "}
-              </Link>,
-            ]
-          : []
-      }
+      title={userName}
+      subtitle={date}
+      text={<p> {text} </p>}
+      actions={actions}
     />
   );
 }

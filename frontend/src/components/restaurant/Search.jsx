@@ -1,80 +1,91 @@
 import React, { useState, useEffect, useRef } from "react";
 
-import Dropdown from "../Dropdown";
-
+import Bubble from "../Bubble";
 import { useRealm } from "../../services/realm";
 import { useDebouncedEffect } from "../../services/realm";
 
 const ALL_CUISINES = "All Cuisines";
 
-export default function RestaurantsSearch() {
-  const focusRef = useRef(),
-    [query, setQuery] = useState({}),
-    [{ cuisines = [] }, api] = useRealm();
+export default function RestaurantsSearch({
+  query: { page, skip, size, limit, ...queryProp },
+}) {
+  // note: search parameters in props are used as initial condition; updates to this form do not directly
+  //  update the location (where the props come from):  user must do page navigation to change props
+  const [query, setQuery] = useState(queryProp),
+    [{ cuisines = [] }, api] = useRealm(),
+    focusRef = useRef();
+
+  page = (() => {
+    const pagination = {};
+    if (page) {
+      pagination.page = page;
+      if (size) {
+        pagination.size = size;
+      }
+    } else if (skip) {
+      pagination.skip = skip;
+      if (limit) {
+        pagination.limit = limit;
+      }
+    }
+
+    return pagination;
+  })();
 
   useEffect(() => {
-    api.getCuisines().catch((e) => {
+    const q = api.getCuisines();
+    q.catch((e) => {
       console.log(e);
     });
+    return q.cancel;
   }, [api]);
 
-  const updateQuery = (key, value) => {
-    if (value === "" || (key === "cuisine" && value === ALL_CUISINES)) {
-      const { [key]: _, ...rest } = query;
+  const updateQuery = ({ target: { name, value } }) => {
+    if (value === "" || (name === "cuisine" && value === ALL_CUISINES)) {
+      const { [name]: _, ...rest } = query;
       setQuery(rest);
     } else {
-      setQuery({ ...query, [key]: value });
+      setQuery({ ...query, [name]: value });
     }
   };
 
-  // effect of searching propagates through the useRealm reducer
   // debouncing provides automatic and periodic updates as search parameters change
+  // effect of searching propagates through the useRealm reducer
+  // the very first call is not delayed
   useDebouncedEffect(
     () => {
-      const req = (() =>
-        Object.entries(query).length
-          ? api.searchRestaurants(query)
-          : api.getRestaurants())();
-
-      req.catch((e) => {
+      const q = api.getRestaurants(page, query);
+      q.catch((e) => {
         console.log(e);
       });
-
-      return req.cancel;
+      return q.cancel;
     },
-    [query, api],
-    800
+    700,
+    [query, api]
   );
 
   return (
-    <Dropdown
-      affordanceType="button"
-      affordanceText="Search"
+    <Bubble
+      affordance={<button> Search </button>}
       focusRef={focusRef}
-      className="restaurants-search"
+      className="search"
     >
       <input
         type="text"
-        placeholder="Text search (name or street)"
+        name="text"
         value={query.name}
-        onChange={({ target: { value } }) => {
-          updateQuery("text", value);
-        }}
+        onChange={updateQuery}
+        placeholder="Text search (name or street)"
         ref={focusRef}
       />
       <input
         type="text"
-        placeholder="Search by zip"
+        name="zipcode"
         value={query.zipcode}
-        onChange={({ target: { value } }) => {
-          updateQuery("zipcode", value);
-        }}
+        onChange={updateQuery}
+        placeholder="Search by zip"
       />
-      <select
-        onChange={({ target: { value } }) => {
-          updateQuery("cuisine", value);
-        }}
-      >
+      <select name="cuisine" onChange={updateQuery}>
         <option value={ALL_CUISINES}> {ALL_CUISINES} </option>
         {cuisines.map((cuisine, i) => (
           <option value={cuisine} key={i}>
@@ -83,6 +94,6 @@ export default function RestaurantsSearch() {
           </option>
         ))}
       </select>
-    </Dropdown>
+    </Bubble>
   );
 }
