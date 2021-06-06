@@ -6,8 +6,13 @@
     "deployment_model": "LOCAL",
     "security": {
         "allowed_request_origins": [
-            "http://localhost:3000"
+            "http://localhost:3000",
+            "https://application-1-sdtbu.mongodbstitch.com"
         ]
+    },
+    "hosting": {
+        "enabled": true,
+        "app_default_domain": "application-1-sdtbu.mongodbstitch.com"
     },
     "custom_user_data_config": {
         "enabled": false,

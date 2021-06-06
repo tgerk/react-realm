@@ -2,8 +2,8 @@
 
 Storage.prototype.getJSONItem = function (key, defaultValue) {
   try {
-    const value = this.getItem(key);
-    return JSON.parse(value);
+    let value = this.getItem(key);
+    return JSON.parse(value) || defaultValue;
   } catch (e) {
     return defaultValue;
   }

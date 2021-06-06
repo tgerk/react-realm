@@ -24,16 +24,16 @@ exports = async function (payload, response) {
   ];
 
   const limit = // results per page
-    parseInt(payload.query.limit) ||
-    parseInt(payload.query.size) ||
-    defaults.pageSize,
-    skip = // index of first result
-      Math.max(
-        parseInt(payload.query.skip) ||
+      parseInt(payload.query.limit) ||
+      parseInt(payload.query.size) ||
+      defaults.pageSize,
+    skip = Math.max(
+      // index of first result
+      parseInt(payload.query.skip) ||
         (parseInt(payload.query.page) - 1) * limit ||
         0,
-        0
-      );
+      0
+    );
 
   const filter = {},
     query = {};
@@ -51,9 +51,9 @@ exports = async function (payload, response) {
   }
 
   const restaurants = context.services
-    .get("mongodb-atlas")
-    .db("sample_restaurants")
-    .collection("restaurants"),
+      .get("mongodb-atlas")
+      .db("sample_restaurants")
+      .collection("restaurants"),
     search = pipeline(filter, skip, limit),
     {
       count: [{ count }],
@@ -115,9 +115,9 @@ async function getOne(payload, response) {
 
   //TODO: handle uncaught exceptions, error cases 400: invalid id, 404: NOT FOUND
   const restaurants = context.services
-    .get("mongodb-atlas")
-    .db("sample_restaurants")
-    .collection("restaurants"),
+      .get("mongodb-atlas")
+      .db("sample_restaurants")
+      .collection("restaurants"),
     restaurant = await restaurants.aggregate(pipeline(payload.query.id)).next(),
     result = outputTransformRestaurantWithReviews(restaurant);
 
