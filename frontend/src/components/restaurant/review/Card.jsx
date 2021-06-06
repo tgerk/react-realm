@@ -38,7 +38,7 @@ export default function ReviewCard({ restaurantId, ...review }) {
   return (
     <Card
       title={userName}
-      subtitle={relativeDate(date)}
+      subtitle={relativeDate(new Date(date))}
       text={<p>{text}</p>}
       actions={actions}
     />
